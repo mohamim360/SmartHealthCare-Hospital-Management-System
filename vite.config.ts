@@ -9,6 +9,9 @@ import tailwindcss from '@tailwindcss/vite'
 import netlify from '@netlify/vite-plugin-tanstack-start'
 import contentCollections from '@content-collections/vite'
 
+// Only load Netlify plugin when building on Netlify (avoids Edge Functions dev server in local dev)
+const isNetlifyBuild = process.env.NETLIFY === 'true'
+
 const config = defineConfig({
   resolve: {
     alias: {
@@ -17,7 +20,7 @@ const config = defineConfig({
   },
   plugins: [
     devtools(),
-    netlify(),
+    ...(isNetlifyBuild ? [netlify()] : []),
     contentCollections(),
     // this is the plugin that enables path aliases
     viteTsConfigPaths({
