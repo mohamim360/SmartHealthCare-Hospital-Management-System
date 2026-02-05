@@ -1,15 +1,6 @@
-/**
- * Prisma Database Client
- * Singleton pattern for database connection
- * Following TanStack Start best practices for database access
- * 
- * Uses PrismaPg adapter for connection pooling in production
- * Maintains single instance in development to prevent connection exhaustion
- * 
- * Note: This file is server-only and will be tree-shaken from client bundles
- */
-import { PrismaClient } from './generated/prisma/client.js'
+
 import { PrismaPg } from '@prisma/adapter-pg'
+import { PrismaClient } from './generated/prisma/client.js'
 
 // Validate DATABASE_URL is set (server-side only)
 const databaseUrl = process.env.DATABASE_URL
