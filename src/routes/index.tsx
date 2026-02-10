@@ -30,9 +30,9 @@ type ApiTestResult = {
 }
 
 function IndexPage() {
-  const [activeTab, setActiveTab] = useState<'health' | 'create-patient'>(
-    'health',
-  )
+  const [activeTab, setActiveTab] = useState<
+    'health' | 'create-patient' | 'login'
+  >('health')
 
   // Health API state
   const [healthLoading, setHealthLoading] = useState(false)
@@ -46,6 +46,12 @@ function IndexPage() {
   const [createPatientLoading, setCreatePatientLoading] = useState(false)
   const [createPatientResult, setCreatePatientResult] =
     useState<ApiTestResult | null>(null)
+
+  // Login API state
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
+  const [loginResult, setLoginResult] = useState<ApiTestResult | null>(null)
 
   const testHealthApi = async () => {
     setHealthLoading(true)
@@ -121,6 +127,46 @@ function IndexPage() {
     }
   }
 
+  const testLoginApi = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoginLoading(true)
+    setLoginResult(null)
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: loginEmail,
+          password: loginPassword,
+        }),
+        credentials: 'include',
+      })
+
+      const data = await res.json().catch(() => null)
+
+      setLoginResult({
+        status: res.status,
+        response: data,
+        error: !res.ok
+          ? data?.message || `Request failed with status ${res.status}`
+          : null,
+        timestamp: new Date().toISOString(),
+      })
+    } catch (err) {
+      setLoginResult({
+        status: 0,
+        response: null,
+        error: err instanceof Error ? err.message : 'Something went wrong',
+        timestamp: new Date().toISOString(),
+      })
+    } finally {
+      setLoginLoading(false)
+    }
+  }
+
   const formatJSON = (obj: unknown): string => {
     try {
       return JSON.stringify(obj, null, 2)
@@ -162,6 +208,17 @@ function IndexPage() {
             )}
           >
             Create Patient
+          </button>
+          <button
+            onClick={() => setActiveTab('login')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'login'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Login
           </button>
         </div>
 
@@ -464,6 +521,146 @@ function IndexPage() {
                       </div>
                     )}
                   </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Login API Tab */}
+        {activeTab === 'login' && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  POST /api/auth/login
+                  <Badge variant="outline" className="text-xs">
+                    POST
+                  </Badge>
+                </CardTitle>
+                <CardDescription>
+                  Sign in with email and password. Sets accessToken and
+                  refreshToken cookies.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-4" onSubmit={testLoginApi}>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Email <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                      value={loginEmail}
+                      onChange={(e) => setLoginEmail(e.target.value)}
+                      required
+                      placeholder="john.doe@example.com"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="block text-sm font-medium text-slate-700">
+                      Password <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="password"
+                      className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div className="pt-2">
+                    <h3 className="text-sm font-medium mb-2">Request Body</h3>
+                    <div className="bg-slate-50 rounded-md p-3 text-xs font-mono">
+                      <pre className="whitespace-pre-wrap">
+                        {formatJSON({
+                          email: loginEmail || '...',
+                          password: loginPassword ? '••••••••' : '...',
+                        })}
+                      </pre>
+                    </div>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loginLoading}
+                    className="w-full inline-flex items-center justify-center rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-sky-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {loginLoading ? 'Signing in...' : 'Login'}
+                  </button>
+                </form>
+              </CardContent>
+              {loginResult && (
+                <CardFooter className="flex-col items-start gap-2">
+                  <div className="w-full">
+                    <div className="flex items-center gap-2 mb-2">
+                      <h3 className="text-sm font-medium">Response</h3>
+                      <Badge
+                        variant={
+                          loginResult.status >= 200 && loginResult.status < 300
+                            ? 'default'
+                            : 'destructive'
+                        }
+                        className="text-xs"
+                      >
+                        {loginResult.status}
+                      </Badge>
+                      <span className="text-xs text-slate-500">
+                        {new Date(
+                          loginResult.timestamp,
+                        ).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    {loginResult.error ? (
+                      <div className="bg-rose-50 border border-rose-200 rounded-md p-3 text-sm text-rose-800">
+                        <strong>Error:</strong> {loginResult.error}
+                        {loginResult.response && (
+                          <div className="mt-2 text-xs font-mono bg-rose-100 p-2 rounded">
+                            <pre className="whitespace-pre-wrap">
+                              {formatJSON(loginResult.response)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 rounded-md p-3 text-xs font-mono overflow-x-auto">
+                        <pre className="whitespace-pre-wrap">
+                          {formatJSON(loginResult.response)}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                </CardFooter>
+              )}
+            </Card>
+
+            {loginResult && !loginResult.error && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Response Preview</CardTitle>
+                  <CardDescription>
+                    Login success. Cookies (accessToken, refreshToken) are set
+                    by the server.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {loginResult.response?.data && (
+                    <div className="text-sm text-slate-600 space-y-2">
+                      <div className="bg-emerald-50 border border-emerald-200 rounded p-2">
+                        <strong>Message:</strong>{' '}
+                        {String(loginResult.response.message)}
+                      </div>
+                      <div>
+                        <strong>Data:</strong>
+                        <div className="bg-slate-50 rounded p-2 mt-1 text-xs font-mono">
+                          <pre className="whitespace-pre-wrap">
+                            {formatJSON(loginResult.response.data)}
+                          </pre>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
