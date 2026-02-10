@@ -12,16 +12,21 @@ export type LoginResult = {
 }
 
 export async function login(payload: LoginInput): Promise<LoginResult> {
-  const user = await prisma.user.findFirstOrThrow({
+  const user = await prisma.user.findFirst({
     where: {
       email: payload.email,
       status: UserStatus.ACTIVE,
     },
   })
 
+  const invalidCredsError = new Error('Invalid email or password')
+  if (!user) {
+    throw invalidCredsError
+  }
+
   const isCorrectPassword = await bcrypt.compare(payload.password, user.password)
   if (!isCorrectPassword) {
-    throw new Error('Password is incorrect!')
+    throw invalidCredsError
   }
 
   const accessToken = generateToken(

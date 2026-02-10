@@ -12,13 +12,14 @@ function responseWithCookies(
   refreshToken: string,
 ): Response {
   const headers = new Headers(res.headers)
+  const secure = process.env.NODE_ENV === 'production' ? '; Secure' : ''
   headers.append(
     'Set-Cookie',
-    `accessToken=${accessToken}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${ACCESS_TOKEN_MAX_AGE}`,
+    `accessToken=${accessToken}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${ACCESS_TOKEN_MAX_AGE}${secure}`,
   )
   headers.append(
     'Set-Cookie',
-    `refreshToken=${refreshToken}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${REFRESH_TOKEN_MAX_AGE}`,
+    `refreshToken=${refreshToken}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${REFRESH_TOKEN_MAX_AGE}${secure}`,
   )
   return new Response(res.body, { status: res.status, headers })
 }
@@ -27,7 +28,16 @@ export const Route = createFileRoute('/api/auth/login')({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const body = await request.json()
+        let body: unknown
+        try {
+          body = await request.json()
+        } catch (err) {
+          console.error('Failed to parse JSON body for /api/auth/login', err)
+          return sendError({
+            statusCode: 400,
+            message: 'Invalid JSON body',
+          })
+        }
         const parsed = loginSchema.safeParse(body)
         if (!parsed.success) {
           return sendError({
@@ -50,8 +60,18 @@ export const Route = createFileRoute('/api/auth/login')({
             result.refreshToken,
           )
         } catch (err) {
-          const message = err instanceof Error ? err.message : 'Login failed'
-          return sendError({ statusCode: 401, message, error: message })
+          if (err instanceof Error && err.message === 'Invalid email or password') {
+            return sendError({
+              statusCode: 401,
+              message: err.message,
+            })
+          }
+
+          console.error('Login failed', err)
+          return sendError({
+            statusCode: 500,
+            message: 'Login failed',
+          })
         }
       },
     },

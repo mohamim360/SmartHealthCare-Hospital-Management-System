@@ -6,6 +6,16 @@ import {
   createPatientMultipartSchema,
 } from '@/lib/user/user.validation'
 
+function isPrismaUniqueConstraintError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    // PrismaClientKnownRequestError code for unique constraint
+    (err as any).code === 'P2002'
+  )
+}
+
 export const Route = createFileRoute('/api/user/create-patient')({
   server: {
     handlers: {
@@ -50,15 +60,38 @@ export const Route = createFileRoute('/api/user/create-patient')({
             address: parsed.data.patient.address,
           }
 
-          const result = await createPatient(input)
-          return sendSuccess({
-            statusCode: 201,
-            message: 'Patient created successfully!',
-            data: result,
-          })
+          try {
+            const result = await createPatient(input)
+            return sendSuccess({
+              statusCode: 201,
+              message: 'Patient created successfully!',
+              data: result,
+            })
+          } catch (err) {
+            console.error('Failed to create patient (multipart)', err)
+            if (isPrismaUniqueConstraintError(err)) {
+              return sendError({
+                statusCode: 409,
+                message: 'Email already exists',
+              })
+            }
+            return sendError({
+              statusCode: 500,
+              message: 'Failed to create patient',
+            })
+          }
         }
 
-        const body = await request.json()
+        let body: unknown
+        try {
+          body = await request.json()
+        } catch (err) {
+          console.error('Failed to parse JSON body for /api/user/create-patient', err)
+          return sendError({
+            statusCode: 400,
+            message: 'Invalid JSON body',
+          })
+        }
         const parsed = createPatientJsonSchema.safeParse(body)
 
         if (!parsed.success) {
@@ -69,12 +102,26 @@ export const Route = createFileRoute('/api/user/create-patient')({
           })
         }
 
-        const result = await createPatient(parsed.data)
-        return sendSuccess({
-          statusCode: 201,
-          message: 'Patient created successfully!',
-          data: result,
-        })
+        try {
+          const result = await createPatient(parsed.data)
+          return sendSuccess({
+            statusCode: 201,
+            message: 'Patient created successfully!',
+            data: result,
+          })
+        } catch (err) {
+          console.error('Failed to create patient (json)', err)
+          if (isPrismaUniqueConstraintError(err)) {
+            return sendError({
+              statusCode: 409,
+              message: 'Email already exists',
+            })
+          }
+          return sendError({
+            statusCode: 500,
+            message: 'Failed to create patient',
+          })
+        }
       },
     },
   },

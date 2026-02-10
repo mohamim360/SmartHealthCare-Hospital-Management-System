@@ -2,11 +2,11 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -58,13 +58,11 @@ function IndexPage() {
     setHealthResult(null)
 
     try {
-      const startTime = Date.now()
       const res = await fetch('/api/health', {
         method: 'GET',
       })
 
       const data = await res.json().catch(() => null)
-      const endTime = Date.now()
 
       setHealthResult({
         status: res.status,
@@ -321,7 +319,7 @@ function IndexPage() {
                               {healthResult.response.message}
                             </div>
                           )}
-                          {healthResult.response.data && (
+                          {healthResult.response.data != null && (
                             <div className="mt-2">
                               <strong>Data:</strong>
                               <div className="bg-slate-50 rounded p-2 mt-1 text-xs font-mono">
@@ -359,10 +357,14 @@ function IndexPage() {
               <CardContent>
                 <form className="space-y-4" onSubmit={testCreatePatientApi}>
                   <div className="space-y-1">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-slate-700"
+                    >
                       Name <span className="text-rose-500">*</span>
                     </label>
                     <input
+                      id="name"
                       type="text"
                       className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                       value={name}
@@ -372,10 +374,14 @@ function IndexPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-slate-700"
+                    >
                       Email <span className="text-rose-500">*</span>
                     </label>
                     <input
+                      id="email"
                       type="email"
                       className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                       value={email}
@@ -385,10 +391,14 @@ function IndexPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label
+                      htmlFor="password"
+                      className="block text-sm font-medium text-slate-700"
+                    >
                       Password <span className="text-rose-500">*</span>
                     </label>
                     <input
+                      id="password"
                       type="password"
                       className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                       value={password}
@@ -398,10 +408,14 @@ function IndexPage() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="block text-sm font-medium text-slate-700">
+                    <label
+                      htmlFor="address"
+                      className="block text-sm font-medium text-slate-700"
+                    >
                       Address <span className="text-slate-400 text-xs">(optional)</span>
                     </label>
                     <input
+                      id="address"
                       type="text"
                       className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                       value={address}
@@ -507,7 +521,7 @@ function IndexPage() {
                               {createPatientResult.response.message}
                             </div>
                           )}
-                          {createPatientResult.response.data && (
+                          {createPatientResult.response.data != null && (
                             <div className="mt-2">
                               <strong>Created Patient Data:</strong>
                               <div className="bg-slate-50 rounded p-2 mt-1 text-xs font-mono">
@@ -645,7 +659,7 @@ function IndexPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {loginResult.response?.data && (
+                  {loginResult.response?.data != null && (
                     <div className="text-sm text-slate-600 space-y-2">
                       <div className="bg-emerald-50 border border-emerald-200 rounded p-2">
                         <strong>Message:</strong>{' '}

@@ -1,7 +1,13 @@
-import jwt, { type Secret, type SignOptions } from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
+import type { Secret, SignOptions } from 'jsonwebtoken'
 
-const defaultAccessSecret = 'access-secret-change-in-production'
-const defaultRefreshSecret = 'refresh-secret-change-in-production'
+function requireEnv(name: 'JWT_ACCESS_SECRET' | 'JWT_REFRESH_SECRET'): string {
+  const value = process.env[name]
+  if (!value) {
+    throw new Error(`${name} environment variable is not set`)
+  }
+  return value
+}
 
 export function generateToken(
   payload: { email: string; role: string },
@@ -9,8 +15,8 @@ export function generateToken(
 ): string {
   const secret: Secret =
     kind === 'access'
-      ? process.env.JWT_ACCESS_SECRET ?? defaultAccessSecret
-      : process.env.JWT_REFRESH_SECRET ?? defaultRefreshSecret
+      ? requireEnv('JWT_ACCESS_SECRET')
+      : requireEnv('JWT_REFRESH_SECRET')
   const expiresIn = kind === 'access' ? '1h' : '90d'
   return jwt.sign(payload, secret, {
     algorithm: 'HS256',
