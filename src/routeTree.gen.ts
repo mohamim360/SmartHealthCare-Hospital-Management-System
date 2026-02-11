@@ -13,7 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as DevIndexRouteImport } from './routes/dev/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as ApiUserIndexRouteImport } from './routes/api/user/index'
 import { Route as ApiUserCreatePatientRouteImport } from './routes/api/user/create-patient'
+import { Route as ApiUserCreateDoctorRouteImport } from './routes/api/user/create-doctor'
+import { Route as ApiUserCreateAdminRouteImport } from './routes/api/user/create-admin'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 
 const IndexRoute = IndexRouteImport.update({
@@ -36,9 +39,24 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiUserIndexRoute = ApiUserIndexRouteImport.update({
+  id: '/api/user/',
+  path: '/api/user/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiUserCreatePatientRoute = ApiUserCreatePatientRouteImport.update({
   id: '/api/user/create-patient',
   path: '/api/user/create-patient',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUserCreateDoctorRoute = ApiUserCreateDoctorRouteImport.update({
+  id: '/api/user/create-doctor',
+  path: '/api/user/create-doctor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiUserCreateAdminRoute = ApiUserCreateAdminRouteImport.update({
+  id: '/api/user/create-admin',
+  path: '/api/user/create-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
@@ -53,7 +71,10 @@ export interface FileRoutesByFullPath {
   '/api/health': typeof ApiHealthRoute
   '/dev/': typeof DevIndexRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/user/create-admin': typeof ApiUserCreateAdminRoute
+  '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
+  '/api/user/': typeof ApiUserIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -61,7 +82,10 @@ export interface FileRoutesByTo {
   '/api/health': typeof ApiHealthRoute
   '/dev': typeof DevIndexRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/user/create-admin': typeof ApiUserCreateAdminRoute
+  '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
+  '/api/user': typeof ApiUserIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -70,7 +94,10 @@ export interface FileRoutesById {
   '/api/health': typeof ApiHealthRoute
   '/dev/': typeof DevIndexRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/user/create-admin': typeof ApiUserCreateAdminRoute
+  '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
+  '/api/user/': typeof ApiUserIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -80,7 +107,10 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/dev/'
     | '/api/auth/login'
+    | '/api/user/create-admin'
+    | '/api/user/create-doctor'
     | '/api/user/create-patient'
+    | '/api/user/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -88,7 +118,10 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/dev'
     | '/api/auth/login'
+    | '/api/user/create-admin'
+    | '/api/user/create-doctor'
     | '/api/user/create-patient'
+    | '/api/user'
   id:
     | '__root__'
     | '/'
@@ -96,7 +129,10 @@ export interface FileRouteTypes {
     | '/api/health'
     | '/dev/'
     | '/api/auth/login'
+    | '/api/user/create-admin'
+    | '/api/user/create-doctor'
     | '/api/user/create-patient'
+    | '/api/user/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -105,7 +141,10 @@ export interface RootRouteChildren {
   ApiHealthRoute: typeof ApiHealthRoute
   DevIndexRoute: typeof DevIndexRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiUserCreateAdminRoute: typeof ApiUserCreateAdminRoute
+  ApiUserCreateDoctorRoute: typeof ApiUserCreateDoctorRoute
   ApiUserCreatePatientRoute: typeof ApiUserCreatePatientRoute
+  ApiUserIndexRoute: typeof ApiUserIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -138,11 +177,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/user/': {
+      id: '/api/user/'
+      path: '/api/user'
+      fullPath: '/api/user/'
+      preLoaderRoute: typeof ApiUserIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/user/create-patient': {
       id: '/api/user/create-patient'
       path: '/api/user/create-patient'
       fullPath: '/api/user/create-patient'
       preLoaderRoute: typeof ApiUserCreatePatientRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/user/create-doctor': {
+      id: '/api/user/create-doctor'
+      path: '/api/user/create-doctor'
+      fullPath: '/api/user/create-doctor'
+      preLoaderRoute: typeof ApiUserCreateDoctorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/user/create-admin': {
+      id: '/api/user/create-admin'
+      path: '/api/user/create-admin'
+      fullPath: '/api/user/create-admin'
+      preLoaderRoute: typeof ApiUserCreateAdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/login': {
@@ -161,7 +221,10 @@ const rootRouteChildren: RootRouteChildren = {
   ApiHealthRoute: ApiHealthRoute,
   DevIndexRoute: DevIndexRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiUserCreateAdminRoute: ApiUserCreateAdminRoute,
+  ApiUserCreateDoctorRoute: ApiUserCreateDoctorRoute,
   ApiUserCreatePatientRoute: ApiUserCreatePatientRoute,
+  ApiUserIndexRoute: ApiUserIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
