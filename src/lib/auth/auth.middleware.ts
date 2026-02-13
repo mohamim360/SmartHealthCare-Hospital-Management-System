@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken'
+import { jwtHelper } from '@/lib/utils/jwt'
 
 export type UserPayload = {
     email: string
@@ -24,7 +24,7 @@ function parseCookies(request: Request): Record<string, string> {
  * Verify the access token from the request cookies.
  * Returns the decoded user payload or null if unauthorized.
  */
-export function verifyAuth(request: Request): UserPayload | null {
+export function verifyAuth(request: Request) {
     // 1. Check Authorization header
     const authHeader = request.headers.get('authorization')
 
@@ -34,21 +34,7 @@ export function verifyAuth(request: Request): UserPayload | null {
             const secret = process.env.JWT_ACCESS_SECRET
             if (!secret) return null
 
-            const decoded = jwt.verify(token, secret)
-
-            // Runtime validation of payload shape
-            if (
-                typeof decoded === 'object' &&
-                decoded !== null &&
-                'email' in decoded &&
-                'role' in decoded &&
-                typeof (decoded as any).email === 'string' &&
-                typeof (decoded as any).role === 'string'
-            ) {
-                return decoded as UserPayload
-            }
-
-            console.error('[verifyAuth] Invalid token payload shape')
+            return jwtHelper.verifyToken(token, secret)
         } catch (err) {
             // Log only generic error message, no token or user details
             console.error('[verifyAuth] Header token verification failed')
@@ -65,22 +51,7 @@ export function verifyAuth(request: Request): UserPayload | null {
         const secret = process.env.JWT_ACCESS_SECRET
         if (!secret) return null
 
-        const decoded = jwt.verify(token, secret)
-
-        // Runtime validation of payload shape
-        if (
-            typeof decoded === 'object' &&
-            decoded !== null &&
-            'email' in decoded &&
-            'role' in decoded &&
-            typeof (decoded as any).email === 'string' &&
-            typeof (decoded as any).role === 'string'
-        ) {
-            return decoded as UserPayload
-        }
-
-        console.error('[verifyAuth] Invalid cookie payload shape')
-        return null
+        return jwtHelper.verifyToken(token, secret)
     } catch (err) {
         console.error('[verifyAuth] Cookie token verification failed')
         return null

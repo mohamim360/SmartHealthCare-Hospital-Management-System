@@ -36,6 +36,14 @@ export function Login() {
 
             const data = await res.json().catch(() => null)
 
+            // For dev testing purposes, we can store the token in sessionStorage
+            // especially since we use it for the Authorization header in other test tabs
+            if (res.ok && data?.data?.accessToken) {
+                sessionStorage.setItem('accessToken', data.data.accessToken)
+            } else if (!res.ok) {
+                sessionStorage.removeItem('accessToken')
+            }
+
             setResult({
                 status: res.status,
                 response: data,

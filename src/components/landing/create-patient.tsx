@@ -23,11 +23,14 @@ export function CreatePatient() {
         setLoading(true)
         setResult(null)
 
+        const token = sessionStorage.getItem('accessToken')
+
         try {
             const res = await fetch('/api/user/create-patient', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    ...(token && { 'Authorization': `Bearer ${token}` }),
                 },
                 credentials: 'include',
                 body: JSON.stringify({

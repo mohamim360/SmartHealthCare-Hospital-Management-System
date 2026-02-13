@@ -117,6 +117,11 @@ export async function createDoctor(payload: CreateDoctorInput) {
   return result
 }
 
+export const userSearchableFields = ['email']
+export const userFilterableFields = ['email', 'role', 'status']
+
+// ... types ...
+
 export async function getAllFromDB(
   params: any,
   options: PaginationOptions,
@@ -138,13 +143,17 @@ export async function getAllFromDB(
     })
   }
 
-  if (Object.keys(filterData).length > 0) {
+  // Whitelist filters
+  const filterKeys = Object.keys(filterData)
+  if (filterKeys.length > 0) {
     andConditions.push({
-      AND: Object.keys(filterData).map((key) => ({
-        [key]: {
-          equals: (filterData as any)[key],
-        },
-      })),
+      AND: filterKeys
+        .filter((key) => userFilterableFields.includes(key))
+        .map((key) => ({
+          [key]: {
+            equals: (filterData as any)[key],
+          },
+        })),
     })
   }
 
@@ -158,7 +167,14 @@ export async function getAllFromDB(
     orderBy: {
       [sortBy]: sortOrder,
     },
-    include: {
+    select: {
+      id: true,
+      email: true,
+      role: true,
+      status: true,
+      needPasswordChange: true,
+      createdAt: true,
+      updatedAt: true,
       patient: true,
       doctor: true,
       admin: true,

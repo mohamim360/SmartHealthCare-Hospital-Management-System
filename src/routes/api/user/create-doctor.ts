@@ -1,27 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { sendError, sendSuccess } from '@/lib/utils/response'
-import { createDoctor } from '@/lib/user/user.service'
-import {
-  createDoctorJsonSchema,
-  createDoctorMultipartSchema,
-} from '@/lib/user/user.validation'
-import { requireAuth } from '@/lib/auth/auth.middleware'
+import { fileUploader } from '@/lib/utils/cloudinary'
 
-function isPrismaUniqueConstraintError(err: unknown): boolean {
-  return (
-    typeof err === 'object' &&
-    err !== null &&
-    'code' in err &&
-    (err as any).code === 'P2002'
-  )
-}
+// ...
 
 export const Route = createFileRoute('/api/user/create-doctor')({
   server: {
     handlers: {
       POST: async ({ request }) => {
         // Auth check: Only ADMIN or SUPER_ADMIN can create doctors
-        const user = requireAuth(request, 'ADMIN')
+        const user = requireAuth(request, 'ADMIN', 'SUPER_ADMIN')
         if (!user) {
           return sendError({
             statusCode: 401,
@@ -34,6 +21,7 @@ export const Route = createFileRoute('/api/user/create-doctor')({
         if (contentType.includes('multipart/form-data')) {
           const formData = await request.formData()
           const dataField = formData.get('data')
+          const file = formData.get('profilePhoto') as File | null
 
           if (typeof dataField !== 'string') {
             return sendError({
@@ -61,6 +49,12 @@ export const Route = createFileRoute('/api/user/create-doctor')({
             })
           }
 
+          let profilePhotoUrl: string | undefined
+          if (file) {
+            const uploadResult = await fileUploader.uploadToCloudinary(file)
+            profilePhotoUrl = uploadResult?.secure_url
+          }
+
           const input = {
             name: parsed.data.doctor.name,
             email: parsed.data.doctor.email,
@@ -74,6 +68,7 @@ export const Route = createFileRoute('/api/user/create-doctor')({
             qualification: parsed.data.doctor.qualification,
             currentWorkingPlace: parsed.data.doctor.currentWorkingPlace,
             designation: parsed.data.doctor.designation,
+            profilePhoto: profilePhotoUrl,
           }
 
           try {
