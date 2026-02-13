@@ -45,26 +45,13 @@ export function CreateDoctor() {
         setLoading(true)
         setResult(null)
 
-        const token = localStorage.getItem('accessToken')
-
-        if (!token) {
-            setResult({
-                status: 401,
-                response: null,
-                error: 'Authentication failed: No access token found. Please login first.',
-                timestamp: new Date().toISOString(),
-            })
-            setLoading(false)
-            return
-        }
-
         try {
             const res = await fetch('/api/user/create-doctor', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
                 },
+                credentials: 'include',
                 body: JSON.stringify(formData),
             })
 

@@ -27,42 +27,62 @@ function parseCookies(request: Request): Record<string, string> {
 export function verifyAuth(request: Request): UserPayload | null {
     // 1. Check Authorization header
     const authHeader = request.headers.get('authorization')
-    console.log('[verifyAuth] authHeader:', authHeader ? 'present' : 'missing')
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
         const token = authHeader.split(' ')[1]
         try {
             const secret = process.env.JWT_ACCESS_SECRET
-            if (!secret) {
-                console.error('[verifyAuth] JWT_ACCESS_SECRET is missing')
-                return null
+            if (!secret) return null
+
+            const decoded = jwt.verify(token, secret)
+
+            // Runtime validation of payload shape
+            if (
+                typeof decoded === 'object' &&
+                decoded !== null &&
+                'email' in decoded &&
+                'role' in decoded &&
+                typeof (decoded as any).email === 'string' &&
+                typeof (decoded as any).role === 'string'
+            ) {
+                return decoded as UserPayload
             }
-            const decoded = jwt.verify(token, secret) as UserPayload
-            console.log('[verifyAuth] Header token verified for:', decoded.email)
-            return decoded
+
+            console.error('[verifyAuth] Invalid token payload shape')
         } catch (err) {
-            console.error('[verifyAuth] Header token verification failed:', err instanceof Error ? err.message : err)
+            // Log only generic error message, no token or user details
+            console.error('[verifyAuth] Header token verification failed')
         }
     }
 
     // 2. Check cookies
     const cookies = parseCookies(request)
     const token = cookies['accessToken']
-    console.log('[verifyAuth] cookie token:', token ? 'present' : 'missing')
 
     if (!token) return null
 
     try {
         const secret = process.env.JWT_ACCESS_SECRET
-        if (!secret) {
-            console.error('[verifyAuth] JWT_ACCESS_SECRET is missing')
-            return null
+        if (!secret) return null
+
+        const decoded = jwt.verify(token, secret)
+
+        // Runtime validation of payload shape
+        if (
+            typeof decoded === 'object' &&
+            decoded !== null &&
+            'email' in decoded &&
+            'role' in decoded &&
+            typeof (decoded as any).email === 'string' &&
+            typeof (decoded as any).role === 'string'
+        ) {
+            return decoded as UserPayload
         }
-        const decoded = jwt.verify(token, secret) as UserPayload
-        console.log('[verifyAuth] Cookie token verified for:', decoded.email)
-        return decoded
+
+        console.error('[verifyAuth] Invalid cookie payload shape')
+        return null
     } catch (err) {
-        console.error('[verifyAuth] Cookie token verification failed:', err instanceof Error ? err.message : err)
+        console.error('[verifyAuth] Cookie token verification failed')
         return null
     }
 }
@@ -76,16 +96,11 @@ export function requireAuth(
     ...roles: string[]
 ): UserPayload | null {
     const user = verifyAuth(request)
-    if (!user) {
-        console.log('[requireAuth] No valid user found by verifyAuth')
-        return null
-    }
+    if (!user) return null
 
     if (roles.length > 0 && !roles.includes(user.role)) {
-        console.log(`[requireAuth] Role mismatch. User role: ${user.role}, Required: ${roles.join(', ')}`)
         return null
     }
 
-    console.log('[requireAuth] Authorization successful for:', user.email)
     return user
 }

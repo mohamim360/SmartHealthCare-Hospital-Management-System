@@ -22,15 +22,13 @@ export function CreateAdmin() {
         setLoading(true)
         setResult(null)
 
-        const token = localStorage.getItem('accessToken')
-
         try {
             const res = await fetch('/api/user/create-admin', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(token && { Authorization: `Bearer ${token}` }),
                 },
+                credentials: 'include',
                 body: JSON.stringify({
                     name,
                     email,
@@ -80,16 +78,17 @@ export function CreateAdmin() {
                         </Badge>
                     </CardTitle>
                     <CardDescription>
-                        Create a new admin account (currently bootstrapped/no-auth)
+                        Create a new admin account (requires ALLOW_BOOTSTRAP=true or ADMIN role)
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form className="space-y-4" onSubmit={testCreateAdminApi}>
                         <div className="space-y-1">
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="name" className="block text-sm font-medium text-slate-700">
                                 Name <span className="text-rose-500">*</span>
                             </label>
                             <input
+                                id="name"
                                 type="text"
                                 className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                                 value={name}
@@ -99,10 +98,11 @@ export function CreateAdmin() {
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-700">
                                 Email <span className="text-rose-500">*</span>
                             </label>
                             <input
+                                id="email"
                                 type="email"
                                 className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                                 value={email}
@@ -112,10 +112,11 @@ export function CreateAdmin() {
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-700">
                                 Password <span className="text-rose-500">*</span>
                             </label>
                             <input
+                                id="password"
                                 type="password"
                                 className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                                 value={password}
@@ -125,10 +126,11 @@ export function CreateAdmin() {
                             />
                         </div>
                         <div className="space-y-1">
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="contactNumber" className="block text-sm font-medium text-slate-700">
                                 Contact Number <span className="text-rose-500">*</span>
                             </label>
                             <input
+                                id="contactNumber"
                                 type="text"
                                 className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
                                 value={contactNumber}

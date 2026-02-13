@@ -17,16 +17,16 @@ export const Route = createFileRoute('/api/user/create-admin')({
     server: {
         handlers: {
             POST: async ({ request }) => {
-                // Auth check: Temporarily disabled to allow bootstrap first admin
-                /*
-                const user = requireAuth(request, 'ADMIN')
-                if (!user) {
-                    return sendError({
-                        statusCode: 401,
-                        message: 'You are not authorized!',
-                    })
+                // Auth check: Gate bootstrap with environment variable
+                if (process.env.ALLOW_BOOTSTRAP !== 'true') {
+                    const user = requireAuth(request, 'ADMIN')
+                    if (!user) {
+                        return sendError({
+                            statusCode: 401,
+                            message: 'You are not authorized!',
+                        })
+                    }
                 }
-                */
 
                 const contentType = request.headers.get('content-type') ?? ''
 
