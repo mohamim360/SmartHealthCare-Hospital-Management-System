@@ -5,6 +5,7 @@ export function sendResponse<T>({
   message,
   data,
   meta,
+  headers,
 }: {
   statusCode: number
   success: boolean
@@ -15,7 +16,11 @@ export function sendResponse<T>({
     limit: number
     total: number
   }
+  headers?: HeadersInit
 }): Response {
+  const responseHeaders = new Headers(headers)
+  responseHeaders.set('Content-Type', 'application/json')
+
   return Response.json(
     {
       success,
@@ -25,9 +30,7 @@ export function sendResponse<T>({
     },
     {
       status: statusCode,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: responseHeaders,
     },
   )
 }
@@ -40,11 +43,13 @@ export function sendSuccess<T>({
   message = 'Success',
   data,
   meta,
+  headers,
 }: {
   statusCode?: number
   message?: string
   data?: T
   meta?: { page: number; limit: number; total: number }
+  headers?: HeadersInit
 }): Response {
   return sendResponse({
     statusCode,
@@ -52,6 +57,7 @@ export function sendSuccess<T>({
     message,
     data,
     meta,
+    headers,
   })
 }
 

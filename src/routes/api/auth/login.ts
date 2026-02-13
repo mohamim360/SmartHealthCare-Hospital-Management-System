@@ -50,9 +50,11 @@ export const Route = createFileRoute('/api/auth/login')({
         try {
           const result = await login(parsed.data)
           const res = sendSuccess({
-            statusCode: 201,
+            statusCode: 200,
             message: 'User logged in successfully!',
-            data: { needPasswordChange: result.needPasswordChange },
+            data: {
+              needPasswordChange: result.needPasswordChange
+            },
           })
           return responseWithCookies(
             res,

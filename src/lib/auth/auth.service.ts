@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
-import { UserStatus } from '@/generated/prisma/enums'
+import { UserStatus } from '@/generated/prisma/client'
 import { prisma } from '@/db'
-import { generateToken } from './jwt'
+import { jwtHelper } from '@/lib/utils/jwt'
 
 export type LoginInput = { email: string; password: string }
 
@@ -29,13 +29,22 @@ export async function login(payload: LoginInput): Promise<LoginResult> {
     throw invalidCredsError
   }
 
-  const accessToken = generateToken(
+  const accessSecret = process.env.JWT_ACCESS_SECRET
+  const refreshSecret = process.env.JWT_REFRESH_SECRET
+
+  if (!accessSecret || !refreshSecret) {
+    throw new Error('JWT secrets are not configured')
+  }
+
+  const accessToken = jwtHelper.generateToken(
     { email: user.email, role: user.role },
-    'access',
+    accessSecret,
+    '1h',
   )
-  const refreshToken = generateToken(
+  const refreshToken = jwtHelper.generateToken(
     { email: user.email, role: user.role },
-    'refresh',
+    refreshSecret,
+    '90d',
   )
 
   return {
