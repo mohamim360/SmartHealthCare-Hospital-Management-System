@@ -25,16 +25,44 @@ function parseCookies(request: Request): Record<string, string> {
  * Returns the decoded user payload or null if unauthorized.
  */
 export function verifyAuth(request: Request): UserPayload | null {
+    // 1. Check Authorization header
+    const authHeader = request.headers.get('authorization')
+    console.log('[verifyAuth] authHeader:', authHeader ? 'present' : 'missing')
+
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1]
+        try {
+            const secret = process.env.JWT_ACCESS_SECRET
+            if (!secret) {
+                console.error('[verifyAuth] JWT_ACCESS_SECRET is missing')
+                return null
+            }
+            const decoded = jwt.verify(token, secret) as UserPayload
+            console.log('[verifyAuth] Header token verified for:', decoded.email)
+            return decoded
+        } catch (err) {
+            console.error('[verifyAuth] Header token verification failed:', err instanceof Error ? err.message : err)
+        }
+    }
+
+    // 2. Check cookies
     const cookies = parseCookies(request)
     const token = cookies['accessToken']
+    console.log('[verifyAuth] cookie token:', token ? 'present' : 'missing')
+
     if (!token) return null
 
     try {
         const secret = process.env.JWT_ACCESS_SECRET
-        if (!secret) return null
+        if (!secret) {
+            console.error('[verifyAuth] JWT_ACCESS_SECRET is missing')
+            return null
+        }
         const decoded = jwt.verify(token, secret) as UserPayload
+        console.log('[verifyAuth] Cookie token verified for:', decoded.email)
         return decoded
-    } catch {
+    } catch (err) {
+        console.error('[verifyAuth] Cookie token verification failed:', err instanceof Error ? err.message : err)
         return null
     }
 }
@@ -48,7 +76,16 @@ export function requireAuth(
     ...roles: string[]
 ): UserPayload | null {
     const user = verifyAuth(request)
-    if (!user) return null
-    if (roles.length > 0 && !roles.includes(user.role)) return null
+    if (!user) {
+        console.log('[requireAuth] No valid user found by verifyAuth')
+        return null
+    }
+
+    if (roles.length > 0 && !roles.includes(user.role)) {
+        console.log(`[requireAuth] Role mismatch. User role: ${user.role}, Required: ${roles.join(', ')}`)
+        return null
+    }
+
+    console.log('[requireAuth] Authorization successful for:', user.email)
     return user
 }

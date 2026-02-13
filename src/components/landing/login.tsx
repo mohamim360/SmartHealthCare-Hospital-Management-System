@@ -36,6 +36,10 @@ export function Login() {
 
             const data = await res.json().catch(() => null)
 
+            if (res.ok && data?.data?.accessToken) {
+                localStorage.setItem('accessToken', data.data.accessToken)
+            }
+
             setResult({
                 status: res.status,
                 response: data,

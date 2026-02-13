@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import { HealthCheck } from '@/components/landing/health-check'
 import { CreatePatient } from '@/components/landing/create-patient'
+import { CreateAdmin } from '@/components/landing/create-admin'
 import { CreateDoctor } from '@/components/landing/create-doctor'
 import { Login } from '@/components/landing/login'
 
@@ -12,7 +13,7 @@ export const Route = createFileRoute('/dev/')({
 
 function IndexPage() {
   const [activeTab, setActiveTab] = useState<
-    'health' | 'create-patient' | 'create-doctor' | 'login'
+    'health' | 'create-patient' | 'create-admin' | 'create-doctor' | 'login'
   >('health')
 
   return (
@@ -50,6 +51,17 @@ function IndexPage() {
             Create Patient
           </button>
           <button
+            onClick={() => setActiveTab('create-admin')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'create-admin'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Create Admin
+          </button>
+          <button
             onClick={() => setActiveTab('create-doctor')}
             className={cn(
               'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
@@ -76,9 +88,10 @@ function IndexPage() {
         {/* Tab Content */}
         {activeTab === 'health' && <HealthCheck />}
         {activeTab === 'create-patient' && <CreatePatient />}
+        {activeTab === 'create-admin' && <CreateAdmin />}
         {activeTab === 'create-doctor' && <CreateDoctor />}
         {activeTab === 'login' && <Login />}
       </div>
-    </div>
+    </div >
   )
 }
