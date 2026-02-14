@@ -3,8 +3,16 @@ import { prisma } from './src/db.js'
 import { UserRole } from './src/generated/prisma/enums.js'
 
 async function test() {
+    const password = process.env.TEST_DB_PASSWORD
+    if (!password) {
+        console.error('ERROR: TEST_DB_PASSWORD environment variable is missing.')
+        console.warn(
+            'Please run with: npx dotenv -e .env.local -- bun run test-db.ts',
+        )
+        process.exit(1)
+    }
+
     const email = `test-doctor-${Date.now()}@example.com`
-    const password = 'password123'
     const hashPassword = await bcrypt.hash(password, 10)
 
     try {

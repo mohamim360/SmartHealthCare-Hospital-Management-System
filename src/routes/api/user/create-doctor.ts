@@ -64,12 +64,15 @@ export const Route = createFileRoute('/api/user/create-doctor')({
           }
 
           let profilePhotoUrl: string | undefined
+          let uploadWarning: string | undefined
+
           if (file) {
             try {
               const uploadResult = await fileUploader.uploadToCloudinary(file)
               profilePhotoUrl = uploadResult?.secure_url
             } catch (err) {
-              console.error('Failed to upload profile photo', err)
+              console.error('Failed to upload profile photo:', err)
+              uploadWarning = 'Profile photo upload failed, but doctor was created'
             }
           }
 
@@ -94,7 +97,10 @@ export const Route = createFileRoute('/api/user/create-doctor')({
             return sendSuccess({
               statusCode: 201,
               message: 'Doctor created successfully!',
-              data: result,
+              data: {
+                ...result,
+                ...(uploadWarning && { warning: uploadWarning }),
+              },
             })
           } catch (err) {
             console.error('Failed to create doctor (multipart):', err)
@@ -106,8 +112,7 @@ export const Route = createFileRoute('/api/user/create-doctor')({
             }
             return sendError({
               statusCode: 500,
-              message: 'Failed to create doctor',
-              error: err instanceof Error ? err.message : String(err),
+              message: 'Internal server error',
             })
           }
         }
@@ -150,8 +155,7 @@ export const Route = createFileRoute('/api/user/create-doctor')({
           }
           return sendError({
             statusCode: 500,
-            message: 'Failed to create doctor',
-            error: err instanceof Error ? err.message : String(err),
+            message: 'Internal server error',
           })
         }
       },

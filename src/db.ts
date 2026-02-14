@@ -27,6 +27,12 @@ function createPrismaClient() {
     connectionTimeoutMillis: 5000,
   })
 
+  // Handle idle client errors to prevent process crashes
+  pool.on('error', (err) => {
+    console.error('[pg Pool] Unexpected error on idle client:', err)
+    pool.end().catch((e) => console.error('[pg Pool] Error ending pool:', e))
+  })
+
   const adapter = new PrismaPg(pool)
 
   return new PrismaClient({
