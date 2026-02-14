@@ -1,10 +1,17 @@
+import 'dotenv/config' // Ensure env vars are loaded
+import { Pool } from 'pg' // <--- 1. IMPORT POOL
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../src/generated/prisma/client.js'
 
-
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
+// 2. Create the actual connection Pool instance
+const connectionString = process.env.DATABASE_URL!
+const pool = new Pool({
+  connectionString,
+  ssl: { rejectUnauthorized: false } // Essential for Neon/AWS
 })
+
+// 3. Pass the 'pool' variable here, NOT the config object
+const adapter = new PrismaPg(pool)
 
 const prisma = new PrismaClient({ adapter })
 
