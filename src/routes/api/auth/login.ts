@@ -53,6 +53,7 @@ export const Route = createFileRoute('/api/auth/login')({
             statusCode: 200,
             message: 'User logged in successfully!',
             data: {
+              accessToken: result.accessToken,
               needPasswordChange: result.needPasswordChange
             },
           })

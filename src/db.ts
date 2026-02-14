@@ -1,3 +1,4 @@
+import pg from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from './generated/prisma/client.js'
 
@@ -19,9 +20,14 @@ declare global {
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({
+  const pool = new pg.Pool({
     connectionString: getDatabaseUrl(),
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
   })
+
+  const adapter = new PrismaPg(pool)
 
   return new PrismaClient({
     adapter,
