@@ -53,7 +53,10 @@ export const Route = createFileRoute('/api/auth/login')({
             statusCode: 200,
             message: 'User logged in successfully!',
             data: {
-              needPasswordChange: result.needPasswordChange
+              // Note: accessToken is omitted from body for security (use HttpOnly cookie).
+              // If dual-auth (Bearer + Cookie) is needed for external clients, 
+              // it should be explicitly configured here.
+              needPasswordChange: result.needPasswordChange,
             },
           })
           return responseWithCookies(

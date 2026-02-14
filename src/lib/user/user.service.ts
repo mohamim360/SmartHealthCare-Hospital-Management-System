@@ -54,6 +54,8 @@ export async function createPatient(payload: CreatePatientInput) {
         profilePhoto: payload.profilePhoto,
       },
     })
+  }, {
+    timeout: 15000,
   })
 
   return result
@@ -79,6 +81,8 @@ export async function createAdmin(payload: CreateAdminInput) {
         profilePhoto: payload.profilePhoto,
       },
     })
+  }, {
+    timeout: 15000,
   })
 
   return result
@@ -112,15 +116,14 @@ export async function createDoctor(payload: CreateDoctorInput) {
         profilePhoto: payload.profilePhoto,
       },
     })
+  }, {
+    timeout: 15000,
   })
 
   return result
 }
 
-export const userSearchableFields = ['email']
-export const userFilterableFields = ['email', 'role', 'status']
-
-// ... types ...
+// Pagination and filtering logic
 
 export async function getAllFromDB(
   params: any,

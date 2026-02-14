@@ -1,3 +1,4 @@
+import pg from 'pg'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from './generated/prisma/client.js'
 
@@ -19,9 +20,20 @@ declare global {
 }
 
 function createPrismaClient() {
-  const adapter = new PrismaPg({
+  const pool = new pg.Pool({
     connectionString: getDatabaseUrl(),
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
   })
+
+  // Handle idle client errors to prevent process crashes
+  pool.on('error', (err) => {
+    console.error('[pg Pool] Unexpected error on idle client:', err)
+    pool.end().catch((e) => console.error('[pg Pool] Error ending pool:', e))
+  })
+
+  const adapter = new PrismaPg(pool)
 
   return new PrismaClient({
     adapter,

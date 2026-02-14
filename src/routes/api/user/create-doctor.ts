@@ -1,7 +1,21 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { sendError, sendSuccess } from '@/lib/utils/response'
+import { createDoctor } from '@/lib/user/user.service'
+import {
+  createDoctorJsonSchema,
+  createDoctorMultipartSchema,
+} from '@/lib/user/user.validation'
+import { requireAuth } from '@/lib/auth/auth.middleware'
 import { fileUploader } from '@/lib/utils/cloudinary'
 
-// ...
+function isPrismaUniqueConstraintError(err: unknown): boolean {
+  return (
+    typeof err === 'object' &&
+    err !== null &&
+    'code' in err &&
+    (err as any).code === 'P2002'
+  )
+}
 
 export const Route = createFileRoute('/api/user/create-doctor')({
   server: {
@@ -50,9 +64,16 @@ export const Route = createFileRoute('/api/user/create-doctor')({
           }
 
           let profilePhotoUrl: string | undefined
+          let uploadWarning: string | undefined
+
           if (file) {
-            const uploadResult = await fileUploader.uploadToCloudinary(file)
-            profilePhotoUrl = uploadResult?.secure_url
+            try {
+              const uploadResult = await fileUploader.uploadToCloudinary(file)
+              profilePhotoUrl = uploadResult?.secure_url
+            } catch (err) {
+              console.error('Failed to upload profile photo:', err)
+              uploadWarning = 'Profile photo upload failed, but doctor was created'
+            }
           }
 
           const input = {
@@ -76,10 +97,13 @@ export const Route = createFileRoute('/api/user/create-doctor')({
             return sendSuccess({
               statusCode: 201,
               message: 'Doctor created successfully!',
-              data: result,
+              data: {
+                ...result,
+                ...(uploadWarning && { warning: uploadWarning }),
+              },
             })
           } catch (err) {
-            console.error('Failed to create doctor (multipart)', err)
+            console.error('Failed to create doctor (multipart):', err)
             if (isPrismaUniqueConstraintError(err)) {
               return sendError({
                 statusCode: 409,
@@ -88,7 +112,7 @@ export const Route = createFileRoute('/api/user/create-doctor')({
             }
             return sendError({
               statusCode: 500,
-              message: 'Failed to create doctor',
+              message: 'Internal server error',
             })
           }
         }
@@ -122,7 +146,7 @@ export const Route = createFileRoute('/api/user/create-doctor')({
             data: result,
           })
         } catch (err) {
-          console.error('Failed to create doctor (json)', err)
+          console.error('Failed to create doctor (json):', err)
           if (isPrismaUniqueConstraintError(err)) {
             return sendError({
               statusCode: 409,
@@ -131,7 +155,7 @@ export const Route = createFileRoute('/api/user/create-doctor')({
           }
           return sendError({
             statusCode: 500,
-            message: 'Failed to create doctor',
+            message: 'Internal server error',
           })
         }
       },

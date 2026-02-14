@@ -36,7 +36,7 @@ export function CreateDoctor() {
         const { name, value, type } = e.target
         setFormData((prev) => ({
             ...prev,
-            [name]: type === 'number' ? (value === '' ? '' : Number(value)) : value,
+            [name]: type === 'number' ? (value === '' ? 0 : parseFloat(value)) : value,
         }))
     }
 
@@ -45,26 +45,14 @@ export function CreateDoctor() {
         setLoading(true)
         setResult(null)
 
-        // For dev testing, we use sessionStorage for the token if present
         const token = sessionStorage.getItem('accessToken')
-
-        if (!token) {
-            setResult({
-                status: 401,
-                response: null,
-                error: 'Authentication failed: Admin access token is missing from sessionStorage. Please login first.',
-                timestamp: new Date().toISOString(),
-            })
-            setLoading(false)
-            return
-        }
 
         try {
             const res = await fetch('/api/user/create-doctor', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
+                    ...(token && { 'Authorization': `Bearer ${token}` }),
                 },
                 credentials: 'include', // Still send cookies for cross-verification
                 body: JSON.stringify(formData),
