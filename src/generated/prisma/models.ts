@@ -10,6 +10,8 @@
  */
 export type * from './models/User.ts'
 export type * from './models/Admin.ts'
+export type * from './models/Schedule.ts'
+export type * from './models/DoctorSchedules.ts'
 export type * from './models/Doctor.ts'
 export type * from './models/Patient.ts'
 export type * from './models/Todo.ts'

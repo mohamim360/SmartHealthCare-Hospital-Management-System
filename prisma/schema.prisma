@@ -58,6 +58,32 @@ model Admin {
   @@map("admins")
 }
 
+// Schedule model
+model Schedule {
+  id              String            @id @default(uuid())
+  startDateTime   DateTime
+  endDateTime     DateTime
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  doctorSchedules DoctorSchedules[]
+
+  @@map("schedules")
+}
+
+// DoctorSchedules - links doctors to schedules
+model DoctorSchedules {
+  doctorId   String
+  doctor     Doctor   @relation(fields: [doctorId], references: [id])
+  scheduleId String
+  schedule   Schedule @relation(fields: [scheduleId], references: [id])
+  isBooked   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@id([doctorId, scheduleId])
+  @@map("doctor_schedules")
+}
+
 // Doctor model
 model Doctor {
   id                  String   @id @default(uuid())
@@ -78,6 +104,7 @@ model Doctor {
   updatedAt           DateTime @updatedAt
 
   user User @relation(fields: [email], references: [email])
+  doctorSchedules DoctorSchedules[]
 
   @@map("doctors")
 }
