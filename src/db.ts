@@ -8,14 +8,8 @@ import { PrismaClient } from './generated/prisma/client.js'
  */
 export function getDatabaseUrl(): string {
   const raw = process.env.DATABASE_URL
-  if (raw == null || raw === '') {
+  if (!raw) {
     throw new Error('DATABASE_URL environment variable is not set')
-  }
-  if (typeof raw === 'string') {
-    return raw
-  }
-  if (typeof raw === 'object' && raw !== null && 'href' in raw) {
-    return (raw as URL).href
   }
   return String(raw)
 }

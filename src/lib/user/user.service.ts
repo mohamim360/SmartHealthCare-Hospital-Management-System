@@ -55,6 +55,7 @@ export async function createPatient(payload: CreatePatientInput) {
       },
     })
   }, {
+    maxWait: 10000, // time to acquire a connection (fixes P2028 on first/cold request)
     timeout: 15000,
   })
 
@@ -82,6 +83,7 @@ export async function createAdmin(payload: CreateAdminInput) {
       },
     })
   }, {
+    maxWait: 10000, // time to acquire a connection (fixes P2028 on first/cold request)
     timeout: 15000,
   })
 
@@ -117,6 +119,7 @@ export async function createDoctor(payload: CreateDoctorInput) {
       },
     })
   }, {
+    maxWait: 10000, // time to acquire a connection (fixes P2028 on first/cold request)
     timeout: 15000,
   })
 
