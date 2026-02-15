@@ -28,6 +28,16 @@ export type User = Prisma.UserModel
  */
 export type Admin = Prisma.AdminModel
 /**
+ * Model Schedule
+ * 
+ */
+export type Schedule = Prisma.ScheduleModel
+/**
+ * Model DoctorSchedules
+ * 
+ */
+export type DoctorSchedules = Prisma.DoctorSchedulesModel
+/**
  * Model Doctor
  * 
  */
