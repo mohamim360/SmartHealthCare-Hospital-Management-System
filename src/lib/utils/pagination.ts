@@ -22,6 +22,11 @@ export function calculatePagination(options: PaginationOptions): PaginationResul
   return { page, limit, skip, sortBy, sortOrder }
 }
 
+// Backward-compatible helper shape used in some modules.
+export const paginationHelper = {
+  calculatePagination,
+}
+
 export function pick<T extends Record<string, unknown>, K extends keyof T>(
   obj: T,
   keys: K[],

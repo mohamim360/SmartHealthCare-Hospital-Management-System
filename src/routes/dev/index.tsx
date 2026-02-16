@@ -8,6 +8,9 @@ import { CreateDoctor } from '@/components/landing/create-doctor'
 import { Login } from '@/components/landing/login'
 import { Schedule } from '@/components/landing/schedule'
 import { DoctorSchedule } from '@/components/landing/doctor-schedule'
+import { Patients } from '@/components/landing/patients'
+import { Admins } from '@/components/landing/admins'
+import { DoctorManagement } from '@/components/landing/doctor-management'
 
 export const Route = createFileRoute('/dev/')({
   component: IndexPage,
@@ -21,6 +24,9 @@ type TabId =
   | 'login'
   | 'schedule'
   | 'doctor-schedule'
+  | 'patients'
+  | 'admins'
+  | 'doctor-management'
 
 function IndexPage() {
   const [activeTab, setActiveTab] = useState<TabId>('health')
@@ -114,6 +120,39 @@ function IndexPage() {
           >
             Doctor Schedule
           </button>
+          <button
+            onClick={() => setActiveTab('patients')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'patients'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Patients
+          </button>
+          <button
+            onClick={() => setActiveTab('admins')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'admins'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Admins
+          </button>
+          <button
+            onClick={() => setActiveTab('doctor-management')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'doctor-management'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Doctor Mgmt
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -124,6 +163,9 @@ function IndexPage() {
         {activeTab === 'login' && <Login />}
         {activeTab === 'schedule' && <Schedule />}
         {activeTab === 'doctor-schedule' && <DoctorSchedule />}
+        {activeTab === 'patients' && <Patients />}
+        {activeTab === 'admins' && <Admins />}
+        {activeTab === 'doctor-management' && <DoctorManagement />}
       </div>
     </div >
   )
