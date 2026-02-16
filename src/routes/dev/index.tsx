@@ -6,15 +6,24 @@ import { CreatePatient } from '@/components/landing/create-patient'
 import { CreateAdmin } from '@/components/landing/create-admin'
 import { CreateDoctor } from '@/components/landing/create-doctor'
 import { Login } from '@/components/landing/login'
+import { Schedule } from '@/components/landing/schedule'
+import { DoctorSchedule } from '@/components/landing/doctor-schedule'
 
 export const Route = createFileRoute('/dev/')({
   component: IndexPage,
 })
 
+type TabId =
+  | 'health'
+  | 'create-patient'
+  | 'create-admin'
+  | 'create-doctor'
+  | 'login'
+  | 'schedule'
+  | 'doctor-schedule'
+
 function IndexPage() {
-  const [activeTab, setActiveTab] = useState<
-    'health' | 'create-patient' | 'create-admin' | 'create-doctor' | 'login'
-  >('health')
+  const [activeTab, setActiveTab] = useState<TabId>('health')
 
   return (
     <div className="min-h-screen bg-slate-50 p-8">
@@ -83,6 +92,28 @@ function IndexPage() {
           >
             Login
           </button>
+          <button
+            onClick={() => setActiveTab('schedule')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'schedule'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Schedule
+          </button>
+          <button
+            onClick={() => setActiveTab('doctor-schedule')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'doctor-schedule'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Doctor Schedule
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -91,6 +122,8 @@ function IndexPage() {
         {activeTab === 'create-admin' && <CreateAdmin />}
         {activeTab === 'create-doctor' && <CreateDoctor />}
         {activeTab === 'login' && <Login />}
+        {activeTab === 'schedule' && <Schedule />}
+        {activeTab === 'doctor-schedule' && <DoctorSchedule />}
       </div>
     </div >
   )
