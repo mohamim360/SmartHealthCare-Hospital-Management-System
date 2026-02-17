@@ -14,12 +14,17 @@ import { Route as DevIndexRouteImport } from './routes/dev/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as ApiScheduleIndexRouteImport } from './routes/api/schedule/index'
+import { Route as ApiPatientIndexRouteImport } from './routes/api/patient/index'
 import { Route as ApiDoctorScheduleIndexRouteImport } from './routes/api/doctor-schedule/index'
+import { Route as ApiAdminIndexRouteImport } from './routes/api/admin/index'
 import { Route as ApiUserCreatePatientRouteImport } from './routes/api/user/create-patient'
 import { Route as ApiUserCreateDoctorRouteImport } from './routes/api/user/create-doctor'
 import { Route as ApiUserCreateAdminRouteImport } from './routes/api/user/create-admin'
 import { Route as ApiScheduleIdRouteImport } from './routes/api/schedule/$id'
+import { Route as ApiPatientIdRouteImport } from './routes/api/patient/$id'
+import { Route as ApiDoctorIdRouteImport } from './routes/api/doctor/$id'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAdminIdRouteImport } from './routes/api/admin/$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,9 +51,19 @@ const ApiScheduleIndexRoute = ApiScheduleIndexRouteImport.update({
   path: '/api/schedule/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPatientIndexRoute = ApiPatientIndexRouteImport.update({
+  id: '/api/patient/',
+  path: '/api/patient/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDoctorScheduleIndexRoute = ApiDoctorScheduleIndexRouteImport.update({
   id: '/api/doctor-schedule/',
   path: '/api/doctor-schedule/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminIndexRoute = ApiAdminIndexRouteImport.update({
+  id: '/api/admin/',
+  path: '/api/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiUserCreatePatientRoute = ApiUserCreatePatientRouteImport.update({
@@ -71,9 +86,24 @@ const ApiScheduleIdRoute = ApiScheduleIdRouteImport.update({
   path: '/api/schedule/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPatientIdRoute = ApiPatientIdRouteImport.update({
+  id: '/api/patient/$id',
+  path: '/api/patient/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDoctorIdRoute = ApiDoctorIdRouteImport.update({
+  id: '/api/doctor/$id',
+  path: '/api/doctor/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   id: '/api/auth/login',
   path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminIdRoute = ApiAdminIdRouteImport.update({
+  id: '/api/admin/$id',
+  path: '/api/admin/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -82,12 +112,17 @@ export interface FileRoutesByFullPath {
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
   '/dev/': typeof DevIndexRoute
+  '/api/admin/$id': typeof ApiAdminIdRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/doctor/$id': typeof ApiDoctorIdRoute
+  '/api/patient/$id': typeof ApiPatientIdRoute
   '/api/schedule/$id': typeof ApiScheduleIdRoute
   '/api/user/create-admin': typeof ApiUserCreateAdminRoute
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
+  '/api/admin/': typeof ApiAdminIndexRoute
   '/api/doctor-schedule/': typeof ApiDoctorScheduleIndexRoute
+  '/api/patient/': typeof ApiPatientIndexRoute
   '/api/schedule/': typeof ApiScheduleIndexRoute
 }
 export interface FileRoutesByTo {
@@ -95,12 +130,17 @@ export interface FileRoutesByTo {
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
   '/dev': typeof DevIndexRoute
+  '/api/admin/$id': typeof ApiAdminIdRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/doctor/$id': typeof ApiDoctorIdRoute
+  '/api/patient/$id': typeof ApiPatientIdRoute
   '/api/schedule/$id': typeof ApiScheduleIdRoute
   '/api/user/create-admin': typeof ApiUserCreateAdminRoute
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
+  '/api/admin': typeof ApiAdminIndexRoute
   '/api/doctor-schedule': typeof ApiDoctorScheduleIndexRoute
+  '/api/patient': typeof ApiPatientIndexRoute
   '/api/schedule': typeof ApiScheduleIndexRoute
 }
 export interface FileRoutesById {
@@ -109,12 +149,17 @@ export interface FileRoutesById {
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
   '/dev/': typeof DevIndexRoute
+  '/api/admin/$id': typeof ApiAdminIdRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/doctor/$id': typeof ApiDoctorIdRoute
+  '/api/patient/$id': typeof ApiPatientIdRoute
   '/api/schedule/$id': typeof ApiScheduleIdRoute
   '/api/user/create-admin': typeof ApiUserCreateAdminRoute
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
+  '/api/admin/': typeof ApiAdminIndexRoute
   '/api/doctor-schedule/': typeof ApiDoctorScheduleIndexRoute
+  '/api/patient/': typeof ApiPatientIndexRoute
   '/api/schedule/': typeof ApiScheduleIndexRoute
 }
 export interface FileRouteTypes {
@@ -124,12 +169,17 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/api/health'
     | '/dev/'
+    | '/api/admin/$id'
     | '/api/auth/login'
+    | '/api/doctor/$id'
+    | '/api/patient/$id'
     | '/api/schedule/$id'
     | '/api/user/create-admin'
     | '/api/user/create-doctor'
     | '/api/user/create-patient'
+    | '/api/admin/'
     | '/api/doctor-schedule/'
+    | '/api/patient/'
     | '/api/schedule/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -137,12 +187,17 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/api/health'
     | '/dev'
+    | '/api/admin/$id'
     | '/api/auth/login'
+    | '/api/doctor/$id'
+    | '/api/patient/$id'
     | '/api/schedule/$id'
     | '/api/user/create-admin'
     | '/api/user/create-doctor'
     | '/api/user/create-patient'
+    | '/api/admin'
     | '/api/doctor-schedule'
+    | '/api/patient'
     | '/api/schedule'
   id:
     | '__root__'
@@ -150,12 +205,17 @@ export interface FileRouteTypes {
     | '/api/$'
     | '/api/health'
     | '/dev/'
+    | '/api/admin/$id'
     | '/api/auth/login'
+    | '/api/doctor/$id'
+    | '/api/patient/$id'
     | '/api/schedule/$id'
     | '/api/user/create-admin'
     | '/api/user/create-doctor'
     | '/api/user/create-patient'
+    | '/api/admin/'
     | '/api/doctor-schedule/'
+    | '/api/patient/'
     | '/api/schedule/'
   fileRoutesById: FileRoutesById
 }
@@ -164,12 +224,17 @@ export interface RootRouteChildren {
   ApiSplatRoute: typeof ApiSplatRoute
   ApiHealthRoute: typeof ApiHealthRoute
   DevIndexRoute: typeof DevIndexRoute
+  ApiAdminIdRoute: typeof ApiAdminIdRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiDoctorIdRoute: typeof ApiDoctorIdRoute
+  ApiPatientIdRoute: typeof ApiPatientIdRoute
   ApiScheduleIdRoute: typeof ApiScheduleIdRoute
   ApiUserCreateAdminRoute: typeof ApiUserCreateAdminRoute
   ApiUserCreateDoctorRoute: typeof ApiUserCreateDoctorRoute
   ApiUserCreatePatientRoute: typeof ApiUserCreatePatientRoute
+  ApiAdminIndexRoute: typeof ApiAdminIndexRoute
   ApiDoctorScheduleIndexRoute: typeof ApiDoctorScheduleIndexRoute
+  ApiPatientIndexRoute: typeof ApiPatientIndexRoute
   ApiScheduleIndexRoute: typeof ApiScheduleIndexRoute
 }
 
@@ -210,11 +275,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiScheduleIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/patient/': {
+      id: '/api/patient/'
+      path: '/api/patient'
+      fullPath: '/api/patient/'
+      preLoaderRoute: typeof ApiPatientIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/doctor-schedule/': {
       id: '/api/doctor-schedule/'
       path: '/api/doctor-schedule'
       fullPath: '/api/doctor-schedule/'
       preLoaderRoute: typeof ApiDoctorScheduleIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/': {
+      id: '/api/admin/'
+      path: '/api/admin'
+      fullPath: '/api/admin/'
+      preLoaderRoute: typeof ApiAdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/user/create-patient': {
@@ -245,11 +324,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiScheduleIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/patient/$id': {
+      id: '/api/patient/$id'
+      path: '/api/patient/$id'
+      fullPath: '/api/patient/$id'
+      preLoaderRoute: typeof ApiPatientIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/doctor/$id': {
+      id: '/api/doctor/$id'
+      path: '/api/doctor/$id'
+      fullPath: '/api/doctor/$id'
+      preLoaderRoute: typeof ApiDoctorIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/login': {
       id: '/api/auth/login'
       path: '/api/auth/login'
       fullPath: '/api/auth/login'
       preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/$id': {
+      id: '/api/admin/$id'
+      path: '/api/admin/$id'
+      fullPath: '/api/admin/$id'
+      preLoaderRoute: typeof ApiAdminIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -260,12 +360,17 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSplatRoute: ApiSplatRoute,
   ApiHealthRoute: ApiHealthRoute,
   DevIndexRoute: DevIndexRoute,
+  ApiAdminIdRoute: ApiAdminIdRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiDoctorIdRoute: ApiDoctorIdRoute,
+  ApiPatientIdRoute: ApiPatientIdRoute,
   ApiScheduleIdRoute: ApiScheduleIdRoute,
   ApiUserCreateAdminRoute: ApiUserCreateAdminRoute,
   ApiUserCreateDoctorRoute: ApiUserCreateDoctorRoute,
   ApiUserCreatePatientRoute: ApiUserCreatePatientRoute,
+  ApiAdminIndexRoute: ApiAdminIndexRoute,
   ApiDoctorScheduleIndexRoute: ApiDoctorScheduleIndexRoute,
+  ApiPatientIndexRoute: ApiPatientIndexRoute,
   ApiScheduleIndexRoute: ApiScheduleIndexRoute,
 }
 export const routeTree = rootRouteImport

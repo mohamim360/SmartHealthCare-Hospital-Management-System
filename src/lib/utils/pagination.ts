@@ -1,35 +1,41 @@
 export type PaginationOptions = {
-    page?: string | number
-    limit?: string | number
-    sortBy?: string
-    sortOrder?: string
+  page?: string | number
+  limit?: string | number
+  sortBy?: string
+  sortOrder?: string
 }
 
-type PaginationResult = {
-    page: number
-    limit: number
-    skip: number
-    sortBy: string
-    sortOrder: 'asc' | 'desc'
+export type PaginationResult = {
+  page: number
+  limit: number
+  skip: number
+  sortBy: string
+  sortOrder: 'asc' | 'desc'
 }
 
 export function calculatePagination(options: PaginationOptions): PaginationResult {
-    const page = Number(options.page) || 1
-    const limit = Number(options.limit) || 10
-    const skip = (page - 1) * limit
-
-    const sortBy = options.sortBy || 'createdAt'
-    const sortOrder = (options.sortOrder === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc'
-
-    return {
-        page,
-        limit,
-        skip,
-        sortBy,
-        sortOrder,
-    }
+  const page = Number(options.page) || 1
+  const limit = Number(options.limit) || 10
+  const skip = (page - 1) * limit
+  const sortBy = options.sortBy || 'createdAt'
+  const sortOrder = (options.sortOrder === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc'
+  return { page, limit, skip, sortBy, sortOrder }
 }
 
+// Backward-compatible helper shape used in some modules.
 export const paginationHelper = {
-    calculatePagination,
+  calculatePagination,
+}
+
+export function pick<T extends Record<string, unknown>, K extends keyof T>(
+  obj: T,
+  keys: K[],
+): Pick<T, K> {
+  const result = {} as Pick<T, K>
+  for (const key of keys) {
+    if (obj && Object.prototype.hasOwnProperty.call(obj, key)) {
+      result[key] = obj[key]
+    }
+  }
+  return result
 }

@@ -1,9 +1,12 @@
 import bcrypt from 'bcryptjs'
+import type { Prisma } from '@/generated/prisma/client'
+import type { PaginationOptions } from '@/lib/utils/pagination'
 import { prisma } from '@/db'
-import { UserRole, Prisma } from '@/generated/prisma/client'
-import { paginationHelper, PaginationOptions } from '@/lib/utils/pagination'
+import { UserRole } from '@/generated/prisma/client'
+import { calculatePagination } from '@/lib/utils/pagination'
 
 export const userSearchableFields = ['email']
+export const userFilterableFields = ['email', 'role', 'status'] as const
 
 export type CreateUserInput = {
   password: string
@@ -132,11 +135,10 @@ export async function getAllFromDB(
   params: any,
   options: PaginationOptions,
 ) {
-  const { page, limit, skip, sortBy, sortOrder } =
-    paginationHelper.calculatePagination(options)
+  const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
   const { searchTerm, ...filterData } = params
 
-  const andConditions: Prisma.UserWhereInput[] = []
+  const andConditions: Array<Prisma.UserWhereInput> = []
 
   if (searchTerm) {
     andConditions.push({
@@ -154,10 +156,10 @@ export async function getAllFromDB(
   if (filterKeys.length > 0) {
     andConditions.push({
       AND: filterKeys
-        .filter((key) => userFilterableFields.includes(key))
+        .filter((key) => userFilterableFields.includes(key as any))
         .map((key) => ({
           [key]: {
-            equals: (filterData as any)[key],
+            equals: filterData[key],
           },
         })),
     })
