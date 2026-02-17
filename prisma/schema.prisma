@@ -25,6 +25,18 @@ enum Gender {
   FEMALE
 }
 
+enum AppointmentStatus {
+  SCHEDULED
+  INPROGRESS
+  COMPLETED
+  CANCEL
+}
+
+enum PaymentStatus {
+  PAID
+  UNPAID
+}
+
 // User model - Base authentication model
 model User {
   id                 String     @id @default(uuid())
@@ -66,6 +78,7 @@ model Schedule {
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   doctorSchedules DoctorSchedules[]
+  appointments    Appointment[]
 
   @@map("schedules")
 }
@@ -99,12 +112,16 @@ model Doctor {
   qualification       String
   currentWorkingPlace String
   designation         String
+  averageRating       Float    @default(0.0)
   isDeleted           Boolean  @default(false)
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
   user User @relation(fields: [email], references: [email])
   doctorSchedules DoctorSchedules[]
+  appointments    Appointment[]
+  prescriptions   Prescription[]
+  reviews         Review[]
 
   @@map("doctors")
 }
@@ -120,9 +137,82 @@ model Patient {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  user User @relation(fields: [email], references: [email])
+  user          User           @relation(fields: [email], references: [email])
+  appointments  Appointment[]
+  prescriptions Prescription[]
+  reviews       Review[]
 
   @@map("patients")
+}
+
+// Appointment (part-6)
+model Appointment {
+  id             String            @id @default(uuid())
+  patientId      String
+  patient        Patient           @relation(fields: [patientId], references: [id])
+  doctorId       String
+  doctor         Doctor            @relation(fields: [doctorId], references: [id])
+  scheduleId     String
+  schedule       Schedule          @relation(fields: [scheduleId], references: [id])
+  videoCallingId String
+  status         AppointmentStatus @default(SCHEDULED)
+  paymentStatus  PaymentStatus     @default(UNPAID)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  payment        Payment?
+  prescription   Prescription?
+  review         Review?
+
+  @@map("appointments")
+}
+
+// Payment (part-6)
+model Payment {
+  id                 String        @id @default(uuid())
+  appointmentId      String        @unique
+  appointment        Appointment   @relation(fields: [appointmentId], references: [id])
+  amount             Float
+  transactionId      String        @unique
+  status             PaymentStatus @default(UNPAID)
+  paymentGatewayData Json?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@map("payments")
+}
+
+// Prescription (part-7)
+model Prescription {
+  id            String      @id @default(uuid())
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  doctorId      String
+  doctor        Doctor      @relation(fields: [doctorId], references: [id])
+  patientId     String
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  instructions  String
+  followUpDate  DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("prescriptions")
+}
+
+// Review (part-8)
+model Review {
+  id            String      @id @default(uuid())
+  patientId     String
+  patient       Patient     @relation(fields: [patientId], references: [id])
+  doctorId      String
+  doctor        Doctor      @relation(fields: [doctorId], references: [id])
+  appointmentId String      @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  rating        Int
+  comment       String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("reviews")
 }
 
 // Legacy Todo model (keeping for compatibility)
