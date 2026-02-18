@@ -14,8 +14,12 @@ import { Route as DevIndexRouteImport } from './routes/dev/index'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as ApiScheduleIndexRouteImport } from './routes/api/schedule/index'
+import { Route as ApiReviewIndexRouteImport } from './routes/api/review/index'
+import { Route as ApiPrescriptionIndexRouteImport } from './routes/api/prescription/index'
 import { Route as ApiPatientIndexRouteImport } from './routes/api/patient/index'
+import { Route as ApiMetadataIndexRouteImport } from './routes/api/metadata/index'
 import { Route as ApiDoctorScheduleIndexRouteImport } from './routes/api/doctor-schedule/index'
+import { Route as ApiAppointmentIndexRouteImport } from './routes/api/appointment/index'
 import { Route as ApiAdminIndexRouteImport } from './routes/api/admin/index'
 import { Route as ApiUserCreatePatientRouteImport } from './routes/api/user/create-patient'
 import { Route as ApiUserCreateDoctorRouteImport } from './routes/api/user/create-doctor'
@@ -51,14 +55,34 @@ const ApiScheduleIndexRoute = ApiScheduleIndexRouteImport.update({
   path: '/api/schedule/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiReviewIndexRoute = ApiReviewIndexRouteImport.update({
+  id: '/api/review/',
+  path: '/api/review/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPrescriptionIndexRoute = ApiPrescriptionIndexRouteImport.update({
+  id: '/api/prescription/',
+  path: '/api/prescription/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPatientIndexRoute = ApiPatientIndexRouteImport.update({
   id: '/api/patient/',
   path: '/api/patient/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiMetadataIndexRoute = ApiMetadataIndexRouteImport.update({
+  id: '/api/metadata/',
+  path: '/api/metadata/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDoctorScheduleIndexRoute = ApiDoctorScheduleIndexRouteImport.update({
   id: '/api/doctor-schedule/',
   path: '/api/doctor-schedule/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAppointmentIndexRoute = ApiAppointmentIndexRouteImport.update({
+  id: '/api/appointment/',
+  path: '/api/appointment/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminIndexRoute = ApiAdminIndexRouteImport.update({
@@ -121,8 +145,12 @@ export interface FileRoutesByFullPath {
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
   '/api/admin/': typeof ApiAdminIndexRoute
+  '/api/appointment/': typeof ApiAppointmentIndexRoute
   '/api/doctor-schedule/': typeof ApiDoctorScheduleIndexRoute
+  '/api/metadata/': typeof ApiMetadataIndexRoute
   '/api/patient/': typeof ApiPatientIndexRoute
+  '/api/prescription/': typeof ApiPrescriptionIndexRoute
+  '/api/review/': typeof ApiReviewIndexRoute
   '/api/schedule/': typeof ApiScheduleIndexRoute
 }
 export interface FileRoutesByTo {
@@ -139,8 +167,12 @@ export interface FileRoutesByTo {
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
   '/api/admin': typeof ApiAdminIndexRoute
+  '/api/appointment': typeof ApiAppointmentIndexRoute
   '/api/doctor-schedule': typeof ApiDoctorScheduleIndexRoute
+  '/api/metadata': typeof ApiMetadataIndexRoute
   '/api/patient': typeof ApiPatientIndexRoute
+  '/api/prescription': typeof ApiPrescriptionIndexRoute
+  '/api/review': typeof ApiReviewIndexRoute
   '/api/schedule': typeof ApiScheduleIndexRoute
 }
 export interface FileRoutesById {
@@ -158,8 +190,12 @@ export interface FileRoutesById {
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
   '/api/admin/': typeof ApiAdminIndexRoute
+  '/api/appointment/': typeof ApiAppointmentIndexRoute
   '/api/doctor-schedule/': typeof ApiDoctorScheduleIndexRoute
+  '/api/metadata/': typeof ApiMetadataIndexRoute
   '/api/patient/': typeof ApiPatientIndexRoute
+  '/api/prescription/': typeof ApiPrescriptionIndexRoute
+  '/api/review/': typeof ApiReviewIndexRoute
   '/api/schedule/': typeof ApiScheduleIndexRoute
 }
 export interface FileRouteTypes {
@@ -178,8 +214,12 @@ export interface FileRouteTypes {
     | '/api/user/create-doctor'
     | '/api/user/create-patient'
     | '/api/admin/'
+    | '/api/appointment/'
     | '/api/doctor-schedule/'
+    | '/api/metadata/'
     | '/api/patient/'
+    | '/api/prescription/'
+    | '/api/review/'
     | '/api/schedule/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -196,8 +236,12 @@ export interface FileRouteTypes {
     | '/api/user/create-doctor'
     | '/api/user/create-patient'
     | '/api/admin'
+    | '/api/appointment'
     | '/api/doctor-schedule'
+    | '/api/metadata'
     | '/api/patient'
+    | '/api/prescription'
+    | '/api/review'
     | '/api/schedule'
   id:
     | '__root__'
@@ -214,8 +258,12 @@ export interface FileRouteTypes {
     | '/api/user/create-doctor'
     | '/api/user/create-patient'
     | '/api/admin/'
+    | '/api/appointment/'
     | '/api/doctor-schedule/'
+    | '/api/metadata/'
     | '/api/patient/'
+    | '/api/prescription/'
+    | '/api/review/'
     | '/api/schedule/'
   fileRoutesById: FileRoutesById
 }
@@ -233,8 +281,12 @@ export interface RootRouteChildren {
   ApiUserCreateDoctorRoute: typeof ApiUserCreateDoctorRoute
   ApiUserCreatePatientRoute: typeof ApiUserCreatePatientRoute
   ApiAdminIndexRoute: typeof ApiAdminIndexRoute
+  ApiAppointmentIndexRoute: typeof ApiAppointmentIndexRoute
   ApiDoctorScheduleIndexRoute: typeof ApiDoctorScheduleIndexRoute
+  ApiMetadataIndexRoute: typeof ApiMetadataIndexRoute
   ApiPatientIndexRoute: typeof ApiPatientIndexRoute
+  ApiPrescriptionIndexRoute: typeof ApiPrescriptionIndexRoute
+  ApiReviewIndexRoute: typeof ApiReviewIndexRoute
   ApiScheduleIndexRoute: typeof ApiScheduleIndexRoute
 }
 
@@ -275,6 +327,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiScheduleIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/review/': {
+      id: '/api/review/'
+      path: '/api/review'
+      fullPath: '/api/review/'
+      preLoaderRoute: typeof ApiReviewIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/prescription/': {
+      id: '/api/prescription/'
+      path: '/api/prescription'
+      fullPath: '/api/prescription/'
+      preLoaderRoute: typeof ApiPrescriptionIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/patient/': {
       id: '/api/patient/'
       path: '/api/patient'
@@ -282,11 +348,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPatientIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/metadata/': {
+      id: '/api/metadata/'
+      path: '/api/metadata'
+      fullPath: '/api/metadata/'
+      preLoaderRoute: typeof ApiMetadataIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/doctor-schedule/': {
       id: '/api/doctor-schedule/'
       path: '/api/doctor-schedule'
       fullPath: '/api/doctor-schedule/'
       preLoaderRoute: typeof ApiDoctorScheduleIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/appointment/': {
+      id: '/api/appointment/'
+      path: '/api/appointment'
+      fullPath: '/api/appointment/'
+      preLoaderRoute: typeof ApiAppointmentIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/': {
@@ -369,8 +449,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiUserCreateDoctorRoute: ApiUserCreateDoctorRoute,
   ApiUserCreatePatientRoute: ApiUserCreatePatientRoute,
   ApiAdminIndexRoute: ApiAdminIndexRoute,
+  ApiAppointmentIndexRoute: ApiAppointmentIndexRoute,
   ApiDoctorScheduleIndexRoute: ApiDoctorScheduleIndexRoute,
+  ApiMetadataIndexRoute: ApiMetadataIndexRoute,
   ApiPatientIndexRoute: ApiPatientIndexRoute,
+  ApiPrescriptionIndexRoute: ApiPrescriptionIndexRoute,
+  ApiReviewIndexRoute: ApiReviewIndexRoute,
   ApiScheduleIndexRoute: ApiScheduleIndexRoute,
 }
 export const routeTree = rootRouteImport
