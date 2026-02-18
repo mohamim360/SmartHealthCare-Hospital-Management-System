@@ -11,6 +11,10 @@ import { DoctorSchedule } from '@/components/landing/doctor-schedule'
 import { Patients } from '@/components/landing/patients'
 import { Admins } from '@/components/landing/admins'
 import { DoctorManagement } from '@/components/landing/doctor-management'
+import { Appointment } from '@/components/landing/appointment'
+import { Prescription } from '@/components/landing/prescription'
+import { Review } from '@/components/landing/review'
+import { Metadata } from '@/components/landing/metadata'
 
 export const Route = createFileRoute('/dev/')({
   component: IndexPage,
@@ -27,6 +31,10 @@ type TabId =
   | 'patients'
   | 'admins'
   | 'doctor-management'
+  | 'appointment'
+  | 'prescription'
+  | 'review'
+  | 'metadata'
 
 function IndexPage() {
   const [activeTab, setActiveTab] = useState<TabId>('health')
@@ -153,6 +161,50 @@ function IndexPage() {
           >
             Doctor Mgmt
           </button>
+          <button
+            onClick={() => setActiveTab('appointment')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'appointment'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Appointment
+          </button>
+          <button
+            onClick={() => setActiveTab('prescription')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'prescription'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Prescription
+          </button>
+          <button
+            onClick={() => setActiveTab('review')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'review'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Review
+          </button>
+          <button
+            onClick={() => setActiveTab('metadata')}
+            className={cn(
+              'px-4 py-2 text-sm font-medium border-b-2 transition-colors',
+              activeTab === 'metadata'
+                ? 'border-sky-600 text-sky-600'
+                : 'border-transparent text-slate-600 hover:text-slate-900',
+            )}
+          >
+            Metadata
+          </button>
         </div>
 
         {/* Tab Content */}
@@ -166,6 +218,10 @@ function IndexPage() {
         {activeTab === 'patients' && <Patients />}
         {activeTab === 'admins' && <Admins />}
         {activeTab === 'doctor-management' && <DoctorManagement />}
+        {activeTab === 'appointment' && <Appointment />}
+        {activeTab === 'prescription' && <Prescription />}
+        {activeTab === 'review' && <Review />}
+        {activeTab === 'metadata' && <Metadata />}
       </div>
     </div >
   )
