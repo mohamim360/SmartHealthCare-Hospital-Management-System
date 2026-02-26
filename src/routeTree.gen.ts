@@ -9,27 +9,81 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as ConsultationRouteImport } from './routes/consultation'
+import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DevIndexRouteImport } from './routes/dev/index'
+import { Route as DoctorIdRouteImport } from './routes/doctor/$id'
+import { Route as DashboardSettingsRouteImport } from './routes/dashboard/settings'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
+import { Route as DashboardPatientIndexRouteImport } from './routes/dashboard/patient/index'
+import { Route as DashboardDoctorIndexRouteImport } from './routes/dashboard/doctor/index'
+import { Route as DashboardAdminIndexRouteImport } from './routes/dashboard/admin/index'
 import { Route as ApiScheduleIndexRouteImport } from './routes/api/schedule/index'
 import { Route as ApiReviewIndexRouteImport } from './routes/api/review/index'
 import { Route as ApiPrescriptionIndexRouteImport } from './routes/api/prescription/index'
 import { Route as ApiPatientIndexRouteImport } from './routes/api/patient/index'
 import { Route as ApiMetadataIndexRouteImport } from './routes/api/metadata/index'
+import { Route as ApiDoctorIndexRouteImport } from './routes/api/doctor/index'
 import { Route as ApiDoctorScheduleIndexRouteImport } from './routes/api/doctor-schedule/index'
 import { Route as ApiAppointmentIndexRouteImport } from './routes/api/appointment/index'
 import { Route as ApiAdminIndexRouteImport } from './routes/api/admin/index'
+import { Route as DashboardPatientReviewsRouteImport } from './routes/dashboard/patient/reviews'
+import { Route as DashboardPatientMyPrescriptionsRouteImport } from './routes/dashboard/patient/my-prescriptions'
+import { Route as DashboardPatientMyAppointmentsRouteImport } from './routes/dashboard/patient/my-appointments'
+import { Route as DashboardPatientHealthRecordsRouteImport } from './routes/dashboard/patient/health-records'
+import { Route as DashboardPatientBookAppointmentRouteImport } from './routes/dashboard/patient/book-appointment'
+import { Route as DashboardDoctorPrescriptionsRouteImport } from './routes/dashboard/doctor/prescriptions'
+import { Route as DashboardDoctorMySchedulesRouteImport } from './routes/dashboard/doctor/my-schedules'
+import { Route as DashboardDoctorAppointmentsRouteImport } from './routes/dashboard/doctor/appointments'
+import { Route as DashboardAdminSpecialitiesManagementRouteImport } from './routes/dashboard/admin/specialities-management'
+import { Route as DashboardAdminSchedulesManagementRouteImport } from './routes/dashboard/admin/schedules-management'
+import { Route as DashboardAdminPatientsManagementRouteImport } from './routes/dashboard/admin/patients-management'
+import { Route as DashboardAdminDoctorsManagementRouteImport } from './routes/dashboard/admin/doctors-management'
+import { Route as DashboardAdminAppointmentsManagementRouteImport } from './routes/dashboard/admin/appointments-management'
+import { Route as DashboardAdminAdminsManagementRouteImport } from './routes/dashboard/admin/admins-management'
 import { Route as ApiUserCreatePatientRouteImport } from './routes/api/user/create-patient'
 import { Route as ApiUserCreateDoctorRouteImport } from './routes/api/user/create-doctor'
 import { Route as ApiUserCreateAdminRouteImport } from './routes/api/user/create-admin'
 import { Route as ApiScheduleIdRouteImport } from './routes/api/schedule/$id'
 import { Route as ApiPatientIdRouteImport } from './routes/api/patient/$id'
 import { Route as ApiDoctorIdRouteImport } from './routes/api/doctor/$id'
+import { Route as ApiDoctorScheduleAvailableRouteImport } from './routes/api/doctor-schedule/available'
+import { Route as ApiAuthMeRouteImport } from './routes/api/auth/me'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAppointmentIdRouteImport } from './routes/api/appointment/$id'
 import { Route as ApiAdminIdRouteImport } from './routes/api/admin/$id'
 
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsultationRoute = ConsultationRouteImport.update({
+  id: '/consultation',
+  path: '/consultation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRouteRoute = DashboardRouteRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -40,6 +94,16 @@ const DevIndexRoute = DevIndexRouteImport.update({
   path: '/dev/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DoctorIdRoute = DoctorIdRouteImport.update({
+  id: '/doctor/$id',
+  path: '/doctor/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardSettingsRoute = DashboardSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
   id: '/api/health',
   path: '/api/health',
@@ -49,6 +113,21 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
   id: '/api/$',
   path: '/api/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardPatientIndexRoute = DashboardPatientIndexRouteImport.update({
+  id: '/patient/',
+  path: '/patient/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardDoctorIndexRoute = DashboardDoctorIndexRouteImport.update({
+  id: '/doctor/',
+  path: '/doctor/',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardAdminIndexRoute = DashboardAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => DashboardRouteRoute,
 } as any)
 const ApiScheduleIndexRoute = ApiScheduleIndexRouteImport.update({
   id: '/api/schedule/',
@@ -75,6 +154,11 @@ const ApiMetadataIndexRoute = ApiMetadataIndexRouteImport.update({
   path: '/api/metadata/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDoctorIndexRoute = ApiDoctorIndexRouteImport.update({
+  id: '/api/doctor/',
+  path: '/api/doctor/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDoctorScheduleIndexRoute = ApiDoctorScheduleIndexRouteImport.update({
   id: '/api/doctor-schedule/',
   path: '/api/doctor-schedule/',
@@ -90,6 +174,89 @@ const ApiAdminIndexRoute = ApiAdminIndexRouteImport.update({
   path: '/api/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardPatientReviewsRoute = DashboardPatientReviewsRouteImport.update({
+  id: '/patient/reviews',
+  path: '/patient/reviews',
+  getParentRoute: () => DashboardRouteRoute,
+} as any)
+const DashboardPatientMyPrescriptionsRoute =
+  DashboardPatientMyPrescriptionsRouteImport.update({
+    id: '/patient/my-prescriptions',
+    path: '/patient/my-prescriptions',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardPatientMyAppointmentsRoute =
+  DashboardPatientMyAppointmentsRouteImport.update({
+    id: '/patient/my-appointments',
+    path: '/patient/my-appointments',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardPatientHealthRecordsRoute =
+  DashboardPatientHealthRecordsRouteImport.update({
+    id: '/patient/health-records',
+    path: '/patient/health-records',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardPatientBookAppointmentRoute =
+  DashboardPatientBookAppointmentRouteImport.update({
+    id: '/patient/book-appointment',
+    path: '/patient/book-appointment',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardDoctorPrescriptionsRoute =
+  DashboardDoctorPrescriptionsRouteImport.update({
+    id: '/doctor/prescriptions',
+    path: '/doctor/prescriptions',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardDoctorMySchedulesRoute =
+  DashboardDoctorMySchedulesRouteImport.update({
+    id: '/doctor/my-schedules',
+    path: '/doctor/my-schedules',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardDoctorAppointmentsRoute =
+  DashboardDoctorAppointmentsRouteImport.update({
+    id: '/doctor/appointments',
+    path: '/doctor/appointments',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardAdminSpecialitiesManagementRoute =
+  DashboardAdminSpecialitiesManagementRouteImport.update({
+    id: '/admin/specialities-management',
+    path: '/admin/specialities-management',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardAdminSchedulesManagementRoute =
+  DashboardAdminSchedulesManagementRouteImport.update({
+    id: '/admin/schedules-management',
+    path: '/admin/schedules-management',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardAdminPatientsManagementRoute =
+  DashboardAdminPatientsManagementRouteImport.update({
+    id: '/admin/patients-management',
+    path: '/admin/patients-management',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardAdminDoctorsManagementRoute =
+  DashboardAdminDoctorsManagementRouteImport.update({
+    id: '/admin/doctors-management',
+    path: '/admin/doctors-management',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardAdminAppointmentsManagementRoute =
+  DashboardAdminAppointmentsManagementRouteImport.update({
+    id: '/admin/appointments-management',
+    path: '/admin/appointments-management',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
+const DashboardAdminAdminsManagementRoute =
+  DashboardAdminAdminsManagementRouteImport.update({
+    id: '/admin/admins-management',
+    path: '/admin/admins-management',
+    getParentRoute: () => DashboardRouteRoute,
+  } as any)
 const ApiUserCreatePatientRoute = ApiUserCreatePatientRouteImport.update({
   id: '/api/user/create-patient',
   path: '/api/user/create-patient',
@@ -120,9 +287,30 @@ const ApiDoctorIdRoute = ApiDoctorIdRouteImport.update({
   path: '/api/doctor/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDoctorScheduleAvailableRoute =
+  ApiDoctorScheduleAvailableRouteImport.update({
+    id: '/api/doctor-schedule/available',
+    path: '/api/doctor-schedule/available',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiAuthMeRoute = ApiAuthMeRouteImport.update({
+  id: '/api/auth/me',
+  path: '/api/auth/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   id: '/api/auth/login',
   path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAppointmentIdRoute = ApiAppointmentIdRouteImport.update({
+  id: '/api/appointment/$id',
+  path: '/api/appointment/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminIdRoute = ApiAdminIdRouteImport.update({
@@ -133,147 +321,331 @@ const ApiAdminIdRoute = ApiAdminIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/consultation': typeof ConsultationRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/doctor/$id': typeof DoctorIdRoute
   '/dev/': typeof DevIndexRoute
   '/api/admin/$id': typeof ApiAdminIdRoute
+  '/api/appointment/$id': typeof ApiAppointmentIdRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/doctor-schedule/available': typeof ApiDoctorScheduleAvailableRoute
   '/api/doctor/$id': typeof ApiDoctorIdRoute
   '/api/patient/$id': typeof ApiPatientIdRoute
   '/api/schedule/$id': typeof ApiScheduleIdRoute
   '/api/user/create-admin': typeof ApiUserCreateAdminRoute
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
+  '/dashboard/admin/admins-management': typeof DashboardAdminAdminsManagementRoute
+  '/dashboard/admin/appointments-management': typeof DashboardAdminAppointmentsManagementRoute
+  '/dashboard/admin/doctors-management': typeof DashboardAdminDoctorsManagementRoute
+  '/dashboard/admin/patients-management': typeof DashboardAdminPatientsManagementRoute
+  '/dashboard/admin/schedules-management': typeof DashboardAdminSchedulesManagementRoute
+  '/dashboard/admin/specialities-management': typeof DashboardAdminSpecialitiesManagementRoute
+  '/dashboard/doctor/appointments': typeof DashboardDoctorAppointmentsRoute
+  '/dashboard/doctor/my-schedules': typeof DashboardDoctorMySchedulesRoute
+  '/dashboard/doctor/prescriptions': typeof DashboardDoctorPrescriptionsRoute
+  '/dashboard/patient/book-appointment': typeof DashboardPatientBookAppointmentRoute
+  '/dashboard/patient/health-records': typeof DashboardPatientHealthRecordsRoute
+  '/dashboard/patient/my-appointments': typeof DashboardPatientMyAppointmentsRoute
+  '/dashboard/patient/my-prescriptions': typeof DashboardPatientMyPrescriptionsRoute
+  '/dashboard/patient/reviews': typeof DashboardPatientReviewsRoute
   '/api/admin/': typeof ApiAdminIndexRoute
   '/api/appointment/': typeof ApiAppointmentIndexRoute
   '/api/doctor-schedule/': typeof ApiDoctorScheduleIndexRoute
+  '/api/doctor/': typeof ApiDoctorIndexRoute
   '/api/metadata/': typeof ApiMetadataIndexRoute
   '/api/patient/': typeof ApiPatientIndexRoute
   '/api/prescription/': typeof ApiPrescriptionIndexRoute
   '/api/review/': typeof ApiReviewIndexRoute
   '/api/schedule/': typeof ApiScheduleIndexRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
+  '/dashboard/doctor/': typeof DashboardDoctorIndexRoute
+  '/dashboard/patient/': typeof DashboardPatientIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/consultation': typeof ConsultationRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/doctor/$id': typeof DoctorIdRoute
   '/dev': typeof DevIndexRoute
   '/api/admin/$id': typeof ApiAdminIdRoute
+  '/api/appointment/$id': typeof ApiAppointmentIdRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/doctor-schedule/available': typeof ApiDoctorScheduleAvailableRoute
   '/api/doctor/$id': typeof ApiDoctorIdRoute
   '/api/patient/$id': typeof ApiPatientIdRoute
   '/api/schedule/$id': typeof ApiScheduleIdRoute
   '/api/user/create-admin': typeof ApiUserCreateAdminRoute
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
+  '/dashboard/admin/admins-management': typeof DashboardAdminAdminsManagementRoute
+  '/dashboard/admin/appointments-management': typeof DashboardAdminAppointmentsManagementRoute
+  '/dashboard/admin/doctors-management': typeof DashboardAdminDoctorsManagementRoute
+  '/dashboard/admin/patients-management': typeof DashboardAdminPatientsManagementRoute
+  '/dashboard/admin/schedules-management': typeof DashboardAdminSchedulesManagementRoute
+  '/dashboard/admin/specialities-management': typeof DashboardAdminSpecialitiesManagementRoute
+  '/dashboard/doctor/appointments': typeof DashboardDoctorAppointmentsRoute
+  '/dashboard/doctor/my-schedules': typeof DashboardDoctorMySchedulesRoute
+  '/dashboard/doctor/prescriptions': typeof DashboardDoctorPrescriptionsRoute
+  '/dashboard/patient/book-appointment': typeof DashboardPatientBookAppointmentRoute
+  '/dashboard/patient/health-records': typeof DashboardPatientHealthRecordsRoute
+  '/dashboard/patient/my-appointments': typeof DashboardPatientMyAppointmentsRoute
+  '/dashboard/patient/my-prescriptions': typeof DashboardPatientMyPrescriptionsRoute
+  '/dashboard/patient/reviews': typeof DashboardPatientReviewsRoute
   '/api/admin': typeof ApiAdminIndexRoute
   '/api/appointment': typeof ApiAppointmentIndexRoute
   '/api/doctor-schedule': typeof ApiDoctorScheduleIndexRoute
+  '/api/doctor': typeof ApiDoctorIndexRoute
   '/api/metadata': typeof ApiMetadataIndexRoute
   '/api/patient': typeof ApiPatientIndexRoute
   '/api/prescription': typeof ApiPrescriptionIndexRoute
   '/api/review': typeof ApiReviewIndexRoute
   '/api/schedule': typeof ApiScheduleIndexRoute
+  '/dashboard/admin': typeof DashboardAdminIndexRoute
+  '/dashboard/doctor': typeof DashboardDoctorIndexRoute
+  '/dashboard/patient': typeof DashboardPatientIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteRouteWithChildren
+  '/consultation': typeof ConsultationRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
   '/api/$': typeof ApiSplatRoute
   '/api/health': typeof ApiHealthRoute
+  '/dashboard/settings': typeof DashboardSettingsRoute
+  '/doctor/$id': typeof DoctorIdRoute
   '/dev/': typeof DevIndexRoute
   '/api/admin/$id': typeof ApiAdminIdRoute
+  '/api/appointment/$id': typeof ApiAppointmentIdRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/me': typeof ApiAuthMeRoute
+  '/api/doctor-schedule/available': typeof ApiDoctorScheduleAvailableRoute
   '/api/doctor/$id': typeof ApiDoctorIdRoute
   '/api/patient/$id': typeof ApiPatientIdRoute
   '/api/schedule/$id': typeof ApiScheduleIdRoute
   '/api/user/create-admin': typeof ApiUserCreateAdminRoute
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
   '/api/user/create-patient': typeof ApiUserCreatePatientRoute
+  '/dashboard/admin/admins-management': typeof DashboardAdminAdminsManagementRoute
+  '/dashboard/admin/appointments-management': typeof DashboardAdminAppointmentsManagementRoute
+  '/dashboard/admin/doctors-management': typeof DashboardAdminDoctorsManagementRoute
+  '/dashboard/admin/patients-management': typeof DashboardAdminPatientsManagementRoute
+  '/dashboard/admin/schedules-management': typeof DashboardAdminSchedulesManagementRoute
+  '/dashboard/admin/specialities-management': typeof DashboardAdminSpecialitiesManagementRoute
+  '/dashboard/doctor/appointments': typeof DashboardDoctorAppointmentsRoute
+  '/dashboard/doctor/my-schedules': typeof DashboardDoctorMySchedulesRoute
+  '/dashboard/doctor/prescriptions': typeof DashboardDoctorPrescriptionsRoute
+  '/dashboard/patient/book-appointment': typeof DashboardPatientBookAppointmentRoute
+  '/dashboard/patient/health-records': typeof DashboardPatientHealthRecordsRoute
+  '/dashboard/patient/my-appointments': typeof DashboardPatientMyAppointmentsRoute
+  '/dashboard/patient/my-prescriptions': typeof DashboardPatientMyPrescriptionsRoute
+  '/dashboard/patient/reviews': typeof DashboardPatientReviewsRoute
   '/api/admin/': typeof ApiAdminIndexRoute
   '/api/appointment/': typeof ApiAppointmentIndexRoute
   '/api/doctor-schedule/': typeof ApiDoctorScheduleIndexRoute
+  '/api/doctor/': typeof ApiDoctorIndexRoute
   '/api/metadata/': typeof ApiMetadataIndexRoute
   '/api/patient/': typeof ApiPatientIndexRoute
   '/api/prescription/': typeof ApiPrescriptionIndexRoute
   '/api/review/': typeof ApiReviewIndexRoute
   '/api/schedule/': typeof ApiScheduleIndexRoute
+  '/dashboard/admin/': typeof DashboardAdminIndexRoute
+  '/dashboard/doctor/': typeof DashboardDoctorIndexRoute
+  '/dashboard/patient/': typeof DashboardPatientIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/dashboard'
+    | '/consultation'
+    | '/forgot-password'
+    | '/login'
+    | '/register'
     | '/api/$'
     | '/api/health'
+    | '/dashboard/settings'
+    | '/doctor/$id'
     | '/dev/'
     | '/api/admin/$id'
+    | '/api/appointment/$id'
     | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
+    | '/api/doctor-schedule/available'
     | '/api/doctor/$id'
     | '/api/patient/$id'
     | '/api/schedule/$id'
     | '/api/user/create-admin'
     | '/api/user/create-doctor'
     | '/api/user/create-patient'
+    | '/dashboard/admin/admins-management'
+    | '/dashboard/admin/appointments-management'
+    | '/dashboard/admin/doctors-management'
+    | '/dashboard/admin/patients-management'
+    | '/dashboard/admin/schedules-management'
+    | '/dashboard/admin/specialities-management'
+    | '/dashboard/doctor/appointments'
+    | '/dashboard/doctor/my-schedules'
+    | '/dashboard/doctor/prescriptions'
+    | '/dashboard/patient/book-appointment'
+    | '/dashboard/patient/health-records'
+    | '/dashboard/patient/my-appointments'
+    | '/dashboard/patient/my-prescriptions'
+    | '/dashboard/patient/reviews'
     | '/api/admin/'
     | '/api/appointment/'
     | '/api/doctor-schedule/'
+    | '/api/doctor/'
     | '/api/metadata/'
     | '/api/patient/'
     | '/api/prescription/'
     | '/api/review/'
     | '/api/schedule/'
+    | '/dashboard/admin/'
+    | '/dashboard/doctor/'
+    | '/dashboard/patient/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/dashboard'
+    | '/consultation'
+    | '/forgot-password'
+    | '/login'
+    | '/register'
     | '/api/$'
     | '/api/health'
+    | '/dashboard/settings'
+    | '/doctor/$id'
     | '/dev'
     | '/api/admin/$id'
+    | '/api/appointment/$id'
     | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
+    | '/api/doctor-schedule/available'
     | '/api/doctor/$id'
     | '/api/patient/$id'
     | '/api/schedule/$id'
     | '/api/user/create-admin'
     | '/api/user/create-doctor'
     | '/api/user/create-patient'
+    | '/dashboard/admin/admins-management'
+    | '/dashboard/admin/appointments-management'
+    | '/dashboard/admin/doctors-management'
+    | '/dashboard/admin/patients-management'
+    | '/dashboard/admin/schedules-management'
+    | '/dashboard/admin/specialities-management'
+    | '/dashboard/doctor/appointments'
+    | '/dashboard/doctor/my-schedules'
+    | '/dashboard/doctor/prescriptions'
+    | '/dashboard/patient/book-appointment'
+    | '/dashboard/patient/health-records'
+    | '/dashboard/patient/my-appointments'
+    | '/dashboard/patient/my-prescriptions'
+    | '/dashboard/patient/reviews'
     | '/api/admin'
     | '/api/appointment'
     | '/api/doctor-schedule'
+    | '/api/doctor'
     | '/api/metadata'
     | '/api/patient'
     | '/api/prescription'
     | '/api/review'
     | '/api/schedule'
+    | '/dashboard/admin'
+    | '/dashboard/doctor'
+    | '/dashboard/patient'
   id:
     | '__root__'
     | '/'
+    | '/dashboard'
+    | '/consultation'
+    | '/forgot-password'
+    | '/login'
+    | '/register'
     | '/api/$'
     | '/api/health'
+    | '/dashboard/settings'
+    | '/doctor/$id'
     | '/dev/'
     | '/api/admin/$id'
+    | '/api/appointment/$id'
     | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/me'
+    | '/api/doctor-schedule/available'
     | '/api/doctor/$id'
     | '/api/patient/$id'
     | '/api/schedule/$id'
     | '/api/user/create-admin'
     | '/api/user/create-doctor'
     | '/api/user/create-patient'
+    | '/dashboard/admin/admins-management'
+    | '/dashboard/admin/appointments-management'
+    | '/dashboard/admin/doctors-management'
+    | '/dashboard/admin/patients-management'
+    | '/dashboard/admin/schedules-management'
+    | '/dashboard/admin/specialities-management'
+    | '/dashboard/doctor/appointments'
+    | '/dashboard/doctor/my-schedules'
+    | '/dashboard/doctor/prescriptions'
+    | '/dashboard/patient/book-appointment'
+    | '/dashboard/patient/health-records'
+    | '/dashboard/patient/my-appointments'
+    | '/dashboard/patient/my-prescriptions'
+    | '/dashboard/patient/reviews'
     | '/api/admin/'
     | '/api/appointment/'
     | '/api/doctor-schedule/'
+    | '/api/doctor/'
     | '/api/metadata/'
     | '/api/patient/'
     | '/api/prescription/'
     | '/api/review/'
     | '/api/schedule/'
+    | '/dashboard/admin/'
+    | '/dashboard/doctor/'
+    | '/dashboard/patient/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRouteRoute: typeof DashboardRouteRouteWithChildren
+  ConsultationRoute: typeof ConsultationRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  DoctorIdRoute: typeof DoctorIdRoute
   DevIndexRoute: typeof DevIndexRoute
   ApiAdminIdRoute: typeof ApiAdminIdRoute
+  ApiAppointmentIdRoute: typeof ApiAppointmentIdRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthMeRoute: typeof ApiAuthMeRoute
+  ApiDoctorScheduleAvailableRoute: typeof ApiDoctorScheduleAvailableRoute
   ApiDoctorIdRoute: typeof ApiDoctorIdRoute
   ApiPatientIdRoute: typeof ApiPatientIdRoute
   ApiScheduleIdRoute: typeof ApiScheduleIdRoute
@@ -283,6 +655,7 @@ export interface RootRouteChildren {
   ApiAdminIndexRoute: typeof ApiAdminIndexRoute
   ApiAppointmentIndexRoute: typeof ApiAppointmentIndexRoute
   ApiDoctorScheduleIndexRoute: typeof ApiDoctorScheduleIndexRoute
+  ApiDoctorIndexRoute: typeof ApiDoctorIndexRoute
   ApiMetadataIndexRoute: typeof ApiMetadataIndexRoute
   ApiPatientIndexRoute: typeof ApiPatientIndexRoute
   ApiPrescriptionIndexRoute: typeof ApiPrescriptionIndexRoute
@@ -292,6 +665,41 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consultation': {
+      id: '/consultation'
+      path: '/consultation'
+      fullPath: '/consultation'
+      preLoaderRoute: typeof ConsultationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -306,6 +714,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/doctor/$id': {
+      id: '/doctor/$id'
+      path: '/doctor/$id'
+      fullPath: '/doctor/$id'
+      preLoaderRoute: typeof DoctorIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/settings': {
+      id: '/dashboard/settings'
+      path: '/settings'
+      fullPath: '/dashboard/settings'
+      preLoaderRoute: typeof DashboardSettingsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
     '/api/health': {
       id: '/api/health'
       path: '/api/health'
@@ -319,6 +741,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/$'
       preLoaderRoute: typeof ApiSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/patient/': {
+      id: '/dashboard/patient/'
+      path: '/patient'
+      fullPath: '/dashboard/patient/'
+      preLoaderRoute: typeof DashboardPatientIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/doctor/': {
+      id: '/dashboard/doctor/'
+      path: '/doctor'
+      fullPath: '/dashboard/doctor/'
+      preLoaderRoute: typeof DashboardDoctorIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/admin/': {
+      id: '/dashboard/admin/'
+      path: '/admin'
+      fullPath: '/dashboard/admin/'
+      preLoaderRoute: typeof DashboardAdminIndexRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/api/schedule/': {
       id: '/api/schedule/'
@@ -355,6 +798,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiMetadataIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/doctor/': {
+      id: '/api/doctor/'
+      path: '/api/doctor'
+      fullPath: '/api/doctor/'
+      preLoaderRoute: typeof ApiDoctorIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/doctor-schedule/': {
       id: '/api/doctor-schedule/'
       path: '/api/doctor-schedule'
@@ -375,6 +825,104 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/'
       preLoaderRoute: typeof ApiAdminIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/patient/reviews': {
+      id: '/dashboard/patient/reviews'
+      path: '/patient/reviews'
+      fullPath: '/dashboard/patient/reviews'
+      preLoaderRoute: typeof DashboardPatientReviewsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/patient/my-prescriptions': {
+      id: '/dashboard/patient/my-prescriptions'
+      path: '/patient/my-prescriptions'
+      fullPath: '/dashboard/patient/my-prescriptions'
+      preLoaderRoute: typeof DashboardPatientMyPrescriptionsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/patient/my-appointments': {
+      id: '/dashboard/patient/my-appointments'
+      path: '/patient/my-appointments'
+      fullPath: '/dashboard/patient/my-appointments'
+      preLoaderRoute: typeof DashboardPatientMyAppointmentsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/patient/health-records': {
+      id: '/dashboard/patient/health-records'
+      path: '/patient/health-records'
+      fullPath: '/dashboard/patient/health-records'
+      preLoaderRoute: typeof DashboardPatientHealthRecordsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/patient/book-appointment': {
+      id: '/dashboard/patient/book-appointment'
+      path: '/patient/book-appointment'
+      fullPath: '/dashboard/patient/book-appointment'
+      preLoaderRoute: typeof DashboardPatientBookAppointmentRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/doctor/prescriptions': {
+      id: '/dashboard/doctor/prescriptions'
+      path: '/doctor/prescriptions'
+      fullPath: '/dashboard/doctor/prescriptions'
+      preLoaderRoute: typeof DashboardDoctorPrescriptionsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/doctor/my-schedules': {
+      id: '/dashboard/doctor/my-schedules'
+      path: '/doctor/my-schedules'
+      fullPath: '/dashboard/doctor/my-schedules'
+      preLoaderRoute: typeof DashboardDoctorMySchedulesRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/doctor/appointments': {
+      id: '/dashboard/doctor/appointments'
+      path: '/doctor/appointments'
+      fullPath: '/dashboard/doctor/appointments'
+      preLoaderRoute: typeof DashboardDoctorAppointmentsRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/admin/specialities-management': {
+      id: '/dashboard/admin/specialities-management'
+      path: '/admin/specialities-management'
+      fullPath: '/dashboard/admin/specialities-management'
+      preLoaderRoute: typeof DashboardAdminSpecialitiesManagementRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/admin/schedules-management': {
+      id: '/dashboard/admin/schedules-management'
+      path: '/admin/schedules-management'
+      fullPath: '/dashboard/admin/schedules-management'
+      preLoaderRoute: typeof DashboardAdminSchedulesManagementRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/admin/patients-management': {
+      id: '/dashboard/admin/patients-management'
+      path: '/admin/patients-management'
+      fullPath: '/dashboard/admin/patients-management'
+      preLoaderRoute: typeof DashboardAdminPatientsManagementRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/admin/doctors-management': {
+      id: '/dashboard/admin/doctors-management'
+      path: '/admin/doctors-management'
+      fullPath: '/dashboard/admin/doctors-management'
+      preLoaderRoute: typeof DashboardAdminDoctorsManagementRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/admin/appointments-management': {
+      id: '/dashboard/admin/appointments-management'
+      path: '/admin/appointments-management'
+      fullPath: '/dashboard/admin/appointments-management'
+      preLoaderRoute: typeof DashboardAdminAppointmentsManagementRouteImport
+      parentRoute: typeof DashboardRouteRoute
+    }
+    '/dashboard/admin/admins-management': {
+      id: '/dashboard/admin/admins-management'
+      path: '/admin/admins-management'
+      fullPath: '/dashboard/admin/admins-management'
+      preLoaderRoute: typeof DashboardAdminAdminsManagementRouteImport
+      parentRoute: typeof DashboardRouteRoute
     }
     '/api/user/create-patient': {
       id: '/api/user/create-patient'
@@ -418,11 +966,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDoctorIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/doctor-schedule/available': {
+      id: '/api/doctor-schedule/available'
+      path: '/api/doctor-schedule/available'
+      fullPath: '/api/doctor-schedule/available'
+      preLoaderRoute: typeof ApiDoctorScheduleAvailableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/me': {
+      id: '/api/auth/me'
+      path: '/api/auth/me'
+      fullPath: '/api/auth/me'
+      preLoaderRoute: typeof ApiAuthMeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/login': {
       id: '/api/auth/login'
       path: '/api/auth/login'
       fullPath: '/api/auth/login'
       preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/appointment/$id': {
+      id: '/api/appointment/$id'
+      path: '/api/appointment/$id'
+      fullPath: '/api/appointment/$id'
+      preLoaderRoute: typeof ApiAppointmentIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/$id': {
@@ -435,13 +1011,72 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DashboardRouteRouteChildren {
+  DashboardSettingsRoute: typeof DashboardSettingsRoute
+  DashboardAdminAdminsManagementRoute: typeof DashboardAdminAdminsManagementRoute
+  DashboardAdminAppointmentsManagementRoute: typeof DashboardAdminAppointmentsManagementRoute
+  DashboardAdminDoctorsManagementRoute: typeof DashboardAdminDoctorsManagementRoute
+  DashboardAdminPatientsManagementRoute: typeof DashboardAdminPatientsManagementRoute
+  DashboardAdminSchedulesManagementRoute: typeof DashboardAdminSchedulesManagementRoute
+  DashboardAdminSpecialitiesManagementRoute: typeof DashboardAdminSpecialitiesManagementRoute
+  DashboardDoctorAppointmentsRoute: typeof DashboardDoctorAppointmentsRoute
+  DashboardDoctorMySchedulesRoute: typeof DashboardDoctorMySchedulesRoute
+  DashboardDoctorPrescriptionsRoute: typeof DashboardDoctorPrescriptionsRoute
+  DashboardPatientBookAppointmentRoute: typeof DashboardPatientBookAppointmentRoute
+  DashboardPatientHealthRecordsRoute: typeof DashboardPatientHealthRecordsRoute
+  DashboardPatientMyAppointmentsRoute: typeof DashboardPatientMyAppointmentsRoute
+  DashboardPatientMyPrescriptionsRoute: typeof DashboardPatientMyPrescriptionsRoute
+  DashboardPatientReviewsRoute: typeof DashboardPatientReviewsRoute
+  DashboardAdminIndexRoute: typeof DashboardAdminIndexRoute
+  DashboardDoctorIndexRoute: typeof DashboardDoctorIndexRoute
+  DashboardPatientIndexRoute: typeof DashboardPatientIndexRoute
+}
+
+const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
+  DashboardSettingsRoute: DashboardSettingsRoute,
+  DashboardAdminAdminsManagementRoute: DashboardAdminAdminsManagementRoute,
+  DashboardAdminAppointmentsManagementRoute:
+    DashboardAdminAppointmentsManagementRoute,
+  DashboardAdminDoctorsManagementRoute: DashboardAdminDoctorsManagementRoute,
+  DashboardAdminPatientsManagementRoute: DashboardAdminPatientsManagementRoute,
+  DashboardAdminSchedulesManagementRoute:
+    DashboardAdminSchedulesManagementRoute,
+  DashboardAdminSpecialitiesManagementRoute:
+    DashboardAdminSpecialitiesManagementRoute,
+  DashboardDoctorAppointmentsRoute: DashboardDoctorAppointmentsRoute,
+  DashboardDoctorMySchedulesRoute: DashboardDoctorMySchedulesRoute,
+  DashboardDoctorPrescriptionsRoute: DashboardDoctorPrescriptionsRoute,
+  DashboardPatientBookAppointmentRoute: DashboardPatientBookAppointmentRoute,
+  DashboardPatientHealthRecordsRoute: DashboardPatientHealthRecordsRoute,
+  DashboardPatientMyAppointmentsRoute: DashboardPatientMyAppointmentsRoute,
+  DashboardPatientMyPrescriptionsRoute: DashboardPatientMyPrescriptionsRoute,
+  DashboardPatientReviewsRoute: DashboardPatientReviewsRoute,
+  DashboardAdminIndexRoute: DashboardAdminIndexRoute,
+  DashboardDoctorIndexRoute: DashboardDoctorIndexRoute,
+  DashboardPatientIndexRoute: DashboardPatientIndexRoute,
+}
+
+const DashboardRouteRouteWithChildren = DashboardRouteRoute._addFileChildren(
+  DashboardRouteRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRouteRoute: DashboardRouteRouteWithChildren,
+  ConsultationRoute: ConsultationRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
   ApiSplatRoute: ApiSplatRoute,
   ApiHealthRoute: ApiHealthRoute,
+  DoctorIdRoute: DoctorIdRoute,
   DevIndexRoute: DevIndexRoute,
   ApiAdminIdRoute: ApiAdminIdRoute,
+  ApiAppointmentIdRoute: ApiAppointmentIdRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthMeRoute: ApiAuthMeRoute,
+  ApiDoctorScheduleAvailableRoute: ApiDoctorScheduleAvailableRoute,
   ApiDoctorIdRoute: ApiDoctorIdRoute,
   ApiPatientIdRoute: ApiPatientIdRoute,
   ApiScheduleIdRoute: ApiScheduleIdRoute,
@@ -451,6 +1086,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminIndexRoute: ApiAdminIndexRoute,
   ApiAppointmentIndexRoute: ApiAppointmentIndexRoute,
   ApiDoctorScheduleIndexRoute: ApiDoctorScheduleIndexRoute,
+  ApiDoctorIndexRoute: ApiDoctorIndexRoute,
   ApiMetadataIndexRoute: ApiMetadataIndexRoute,
   ApiPatientIndexRoute: ApiPatientIndexRoute,
   ApiPrescriptionIndexRoute: ApiPrescriptionIndexRoute,
