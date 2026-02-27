@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { sendError, sendSuccess } from '@/lib/utils/response'
 import { login } from '@/lib/auth/auth.service'
 import { loginSchema } from '@/lib/auth/auth.validation'
+import { jwtHelper } from '@/lib/utils/jwt'
 
 const ACCESS_TOKEN_MAX_AGE = 60 * 60 // 1h
 const REFRESH_TOKEN_MAX_AGE = 60 * 60 * 24 * 90 // 90d
@@ -49,13 +50,16 @@ export const Route = createFileRoute('/api/auth/login')({
 
         try {
           const result = await login(parsed.data)
+          // Decode the role from the token for client-side redirect
+          const secret = process.env.JWT_ACCESS_SECRET!
+          const decoded = jwtHelper.verifyToken(result.accessToken, secret)
+
           const res = sendSuccess({
             statusCode: 200,
             message: 'User logged in successfully!',
             data: {
-              // Note: accessToken is omitted from body for security (use HttpOnly cookie).
-              // If dual-auth (Bearer + Cookie) is needed for external clients, 
-              // it should be explicitly configured here.
+              accessToken: result.accessToken,
+              role: decoded?.role ?? 'PATIENT',
               needPasswordChange: result.needPasswordChange,
             },
           })
