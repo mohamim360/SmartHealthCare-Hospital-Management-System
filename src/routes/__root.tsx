@@ -1,3 +1,4 @@
+import React from 'react'
 import {
   HeadContent,
   Scripts,
@@ -5,6 +6,7 @@ import {
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { AuthProvider } from '@/hooks/useAuth'
 
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
@@ -47,9 +49,26 @@ function RootDocument({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        {/* Google Fonts — Inter */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
       </head>
       <body>
-        {children}
+        {/* Skip link for keyboard / screen‑reader users */}
+        <a
+          href="#main-content"
+          className="skip-link"
+        >
+          Skip to main content
+        </a>
+
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',
