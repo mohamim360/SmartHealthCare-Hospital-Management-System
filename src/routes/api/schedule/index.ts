@@ -3,7 +3,7 @@ import { sendError, sendSuccess } from '@/lib/utils/response'
 import { requireAuth } from '@/lib/auth/auth.middleware'
 import {
   insertSchedulesIntoDB,
-  schedulesForDoctor,
+  getAllSchedules,
 } from '@/lib/schedule/schedule.service'
 import {
   createScheduleSchema,
@@ -13,7 +13,17 @@ import {
 export const Route = createFileRoute('/api/schedule/')({
   server: {
     handlers: {
+      /**
+       * POST /api/schedule — Create schedule time slots (Admin only)
+       */
       POST: async ({ request }) => {
+        const user = requireAuth(request, 'ADMIN', 'SUPER_ADMIN')
+        if (!user) {
+          return sendError({
+            statusCode: 401,
+            message: 'Unauthorized — only admins can create schedules',
+          })
+        }
         let body: unknown
         try {
           body = await request.json()
@@ -46,12 +56,16 @@ export const Route = createFileRoute('/api/schedule/')({
           })
         }
       },
+
+      /**
+       * GET /api/schedule — List all schedule slots (any authenticated user)
+       */
       GET: async ({ request }) => {
-        const user = requireAuth(request, 'DOCTOR')
+        const user = requireAuth(request, 'ADMIN', 'SUPER_ADMIN', 'DOCTOR', 'PATIENT')
         if (!user) {
           return sendError({
             statusCode: 401,
-            message: 'Unauthorized or invalid role',
+            message: 'Unauthorized',
           })
         }
         const url = new URL(request.url)
@@ -70,14 +84,14 @@ export const Route = createFileRoute('/api/schedule/')({
         }
         const options = parsed.success
           ? {
-              page: parsed.data.page,
-              limit: parsed.data.limit,
-              sortBy: parsed.data.sortBy,
-              sortOrder: parsed.data.sortOrder,
-            }
+            page: parsed.data.page,
+            limit: parsed.data.limit,
+            sortBy: parsed.data.sortBy,
+            sortOrder: parsed.data.sortOrder,
+          }
           : {}
         try {
-          const result = await schedulesForDoctor(user, filters, options)
+          const result = await getAllSchedules(filters, options)
           return sendSuccess({
             statusCode: 200,
             message: 'Schedules fetched',
