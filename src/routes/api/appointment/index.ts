@@ -3,10 +3,42 @@ import { requireAuth } from '@/lib/auth/auth.middleware'
 import { sendError, sendSuccess } from '@/lib/utils/response'
 import { createAppointment } from '@/lib/appointment/appointment.service'
 import { createAppointmentSchema } from '@/lib/appointment/appointment.validation'
+import { getAppointments } from '@/lib/appointment/appointment.list'
 
 export const Route = createFileRoute('/api/appointment/')({
   server: {
     handlers: {
+      GET: async ({ request }) => {
+        const user = requireAuth(request, 'ADMIN', 'DOCTOR', 'PATIENT')
+        if (!user) {
+          return sendError({ statusCode: 401, message: 'Unauthorized or invalid role' })
+        }
+
+        const url = new URL(request.url)
+        const filters = {
+          status: url.searchParams.get('status') ?? undefined,
+          patientId: url.searchParams.get('patientId') ?? undefined,
+          doctorId: url.searchParams.get('doctorId') ?? undefined,
+        }
+        const options = {
+          page: url.searchParams.get('page') ?? undefined,
+          limit: url.searchParams.get('limit') ?? undefined,
+          sortOrder: url.searchParams.get('sortOrder') ?? undefined,
+        }
+
+        try {
+          const result = await getAppointments(user, filters, options)
+          return sendSuccess({
+            statusCode: 200,
+            message: 'Appointments fetched successfully',
+            data: result.data,
+            meta: result.meta,
+          })
+        } catch (err) {
+          console.error('Failed to fetch appointments', err)
+          return sendError({ statusCode: 500, message: 'Failed to fetch appointments' })
+        }
+      },
       POST: async ({ request }) => {
         const user = requireAuth(request, 'PATIENT')
         if (!user) {
