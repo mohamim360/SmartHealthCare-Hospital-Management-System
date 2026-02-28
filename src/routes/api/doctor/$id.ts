@@ -15,10 +15,7 @@ function isPrismaNotFoundError(err: unknown): boolean {
 export const Route = createFileRoute('/api/doctor/$id')({
   server: {
     handlers: {
-      GET: async ({ request, params }) => {
-        const user = requireAuth(request, 'ADMIN')
-        if (!user) return sendError({ statusCode: 401, message: 'Unauthorized or invalid role' })
-
+      GET: async ({ params }) => {
         try {
           const data = await getDoctorById(params.id)
           return sendSuccess({ statusCode: 200, message: 'Doctor fetched successfully', data })
