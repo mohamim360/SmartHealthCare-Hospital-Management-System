@@ -4,7 +4,6 @@ import { prisma } from '@/db'
 import {
   calculatePagination,
   type PaginationOptions,
-  type PaginationResult,
 } from '@/lib/utils/pagination'
 
 export type CreateScheduleInput = {
@@ -14,11 +13,14 @@ export type CreateScheduleInput = {
   endDate: string
 }
 
-export type SchedulesForDoctorFilters = {
+export type ScheduleFilters = {
   startDateTime?: string
   endDateTime?: string
 }
 
+/**
+ * Creates 30-minute time slots between startDate–endDate × startTime–endTime.
+ */
 export async function insertSchedulesIntoDB(payload: CreateScheduleInput) {
   const { startTime, endTime, startDate, endDate } = payload
   const intervalMinutes = 30
@@ -64,11 +66,12 @@ export async function insertSchedulesIntoDB(payload: CreateScheduleInput) {
   return schedules
 }
 
-export type DoctorPayload = { email: string; role: string }
-
-export async function schedulesForDoctor(
-  user: DoctorPayload,
-  filters: SchedulesForDoctorFilters,
+/**
+ * Fetch all schedules with pagination and date filters.
+ * This is the generic list — no doctor-specific filtering.
+ */
+export async function getAllSchedules(
+  filters: ScheduleFilters,
   options: PaginationOptions,
 ) {
   const { page, limit, skip, sortBy, sortOrder } = calculatePagination(options)
@@ -83,16 +86,8 @@ export async function schedulesForDoctor(
     })
   }
 
-  const doctorSchedules = await prisma.doctorSchedules.findMany({
-    where: { doctor: { email: user.email } },
-    select: { scheduleId: true },
-  })
-  const assignedIds = doctorSchedules.map((s) => s.scheduleId)
-
-  const where: Prisma.ScheduleWhereInput = {
-    id: { notIn: assignedIds },
-    ...(andConditions.length > 0 ? { AND: andConditions } : {}),
-  }
+  const where: Prisma.ScheduleWhereInput =
+    andConditions.length > 0 ? { AND: andConditions } : {}
 
   const validSortKeys = ['id', 'startDateTime', 'endDateTime', 'createdAt', 'updatedAt'] as const
   const orderByKey = validSortKeys.includes(sortBy as (typeof validSortKeys)[number])
