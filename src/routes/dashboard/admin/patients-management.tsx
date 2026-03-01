@@ -1,0 +1,143 @@
+
+
+import { useState, useEffect, useCallback } from 'react'
+import { createFileRoute } from '@tanstack/react-router'
+import { Search, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useDebounce } from '@/hooks'
+import { api, buildQuery } from '@/lib/api'
+import { DeleteConfirmationDialog } from '@/components/shared/DeleteConfirmationDialog'
+
+export const Route = createFileRoute('/dashboard/admin/patients-management')({
+  component: PatientsManagementPage,
+})
+
+function PatientsManagementPage() {
+  const [patients, setPatients] = useState<any[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const debouncedSearch = useDebounce(search, 400)
+
+  const fetchPatients = useCallback(async () => {
+    setLoading(true)
+    const qs = buildQuery({ page, limit: 10, searchTerm: debouncedSearch || undefined })
+    const res = await api.get<any[]>(`/api/patient${qs}`)
+    if (res.success) {
+      setPatients(res.data ?? [])
+      setTotal(res.meta?.total ?? 0)
+    }
+    setLoading(false)
+  }, [page, debouncedSearch])
+
+  useEffect(() => { fetchPatients() }, [fetchPatients])
+
+  const handleDelete = async () => {
+    if (!deleteId) return
+    const res = await api.delete(`/api/patient/${deleteId}`)
+    if (res.success) {
+      setDeleteId(null)
+      fetchPatients()
+    }
+  }
+
+  const totalPages = Math.ceil(total / 10)
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Patients Management</h1>
+        <p className="text-muted-foreground">{total} total patients</p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <div className="relative max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email…"
+              className="pl-9"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            />
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="p-6 space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-12 rounded" />)}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Address</TableHead>
+                  <TableHead>Joined</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {patients.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
+                      No patients found.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  patients.map((p: any) => (
+                    <TableRow key={p.id}>
+                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell>{p.email}</TableCell>
+                      <TableCell>{p.address || '—'}</TableCell>
+                      <TableCell>{new Date(p.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => setDeleteId(p.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                Page {page} of {totalPages}
+              </p>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+                  Previous
+                </Button>
+                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <DeleteConfirmationDialog
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        title="Delete Patient"
+        description="Are you sure you want to delete this patient? This action cannot be undone."
+      />
+    </div>
+  )
+}
