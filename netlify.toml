@@ -1,5 +1,5 @@
 [build]
-  command = "npx prisma generate && vite build"
+  command = "npm install && npx prisma generate && vite build"
   publish = "dist/client"
 [dev]
   command = "npm run dev"
