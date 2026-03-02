@@ -1,7 +1,6 @@
 [build]
-  command = "vite build"
-  dir = "dist/client"
+  command = "npx prisma generate && vite build"
+  publish = "dist/client"
 [dev]
   command = "npm run dev"
   targetPort = 3000
-  port = 8888
