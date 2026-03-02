@@ -5,9 +5,8 @@ export type UserPayload = {
     role: string
 }
 
-/**
- * Parse cookies from a Request header.
- */
+// Parse cookies from a Request header.
+
 function parseCookies(request: Request): Record<string, string> {
     const cookieHeader = request.headers.get('cookie')
     if (!cookieHeader) return {}
@@ -59,7 +58,7 @@ export function verifyAuth(request: Request) {
 }
 
 /**
- * Check if the request has the required role(s).
+ * Check if the request has the required roles.
  * Returns the user payload if authorized, or null if not.
  */
 export function requireAuth(
