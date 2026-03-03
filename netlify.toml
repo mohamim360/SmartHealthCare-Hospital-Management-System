@@ -1,5 +1,5 @@
 [build]
-  command = "rm -rf node_modules package-lock.json && npm install && npx prisma generate && vite build"
+  command = "rm -rf node_modules package-lock.json && npm install && npx prisma generate && npx prisma migrate deploy && vite build"
   publish = "dist/client"
 [dev]
   command = "npm run dev"
