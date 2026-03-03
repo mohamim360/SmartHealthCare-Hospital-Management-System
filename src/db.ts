@@ -1,5 +1,5 @@
 import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from './generated/prisma/client.js'
+import { PrismaClient } from './generated/prisma/client'
 
 /**
  * Return DATABASE_URL as a string. pg expects a string connection URL; if the env
