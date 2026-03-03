@@ -1,6 +1,6 @@
 [build]
   command = "rm -rf node_modules package-lock.json && npm install && npx prisma generate && vite build"
-  publish = "dist"
+  publish = "dist/client"
 [dev]
   command = "npm run dev"
   targetPort = 3000
