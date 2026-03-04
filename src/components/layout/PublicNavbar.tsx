@@ -1,19 +1,27 @@
 
 import * as React from 'react'
 import { Link } from '@tanstack/react-router'
-import { Heart, Menu, X } from 'lucide-react'
+import { Heart, Menu, X, LayoutDashboard, LogOut, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
+import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 
 const navLinks = [
     { title: 'Home', href: '/' },
     { title: 'Consultation', href: '/consultation' },
-    { title: 'Services', href: '/services' },
-    { title: 'About', href: '/about' },
 ]
+
+function getDashboardPath(role?: string) {
+    if (role === 'ADMIN' || role === 'SUPER_ADMIN') return '/dashboard/admin'
+    if (role === 'DOCTOR') return '/dashboard/doctor'
+    return '/dashboard/patient'
+}
 
 export function PublicNavbar() {
     const [mobileOpen, setMobileOpen] = React.useState(false)
+    const { user, loading, logout } = useAuth()
+    const isLoggedIn = !loading && !!user
 
     return (
         <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md">
@@ -35,27 +43,61 @@ export function PublicNavbar() {
                     ))}
                 </nav>
 
-                {/* Desktop auth buttons */}
+                {/* Desktop right section */}
                 <div className="hidden md:flex items-center gap-2">
-                    <Button variant="ghost" size="sm" asChild>
-                        <Link to="/login">Sign In</Link>
-                    </Button>
-                    <Button variant="default" size="sm" asChild>
-                        <Link to="/register">Get Started</Link>
-                    </Button>
+                    <ThemeToggle />
+
+                    {isLoggedIn ? (
+                        <>
+                            <Button variant="ghost" size="sm" asChild>
+                                <Link to={getDashboardPath(user.role)}>
+                                    <LayoutDashboard className="h-4 w-4 mr-1.5" />
+                                    Dashboard
+                                </Link>
+                            </Button>
+                            <div className="flex items-center gap-2 ml-1 pl-2 border-l">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/10 text-primary">
+                                        <User className="h-3.5 w-3.5" />
+                                    </div>
+                                    <span className="text-sm font-medium">{user.name}</span>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    onClick={logout}
+                                    aria-label="Log out"
+                                    className="text-muted-foreground hover:text-destructive"
+                                >
+                                    <LogOut className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <Button variant="ghost" size="sm" asChild>
+                                <Link to="/login">Sign In</Link>
+                            </Button>
+                            <Button variant="default" size="sm" asChild>
+                                <Link to="/register">Get Started</Link>
+                            </Button>
+                        </>
+                    )}
                 </div>
 
-                {/* Mobile hamburger */}
-                <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="md:hidden"
-                    onClick={() => setMobileOpen(!mobileOpen)}
-                    aria-label="Toggle navigation"
-                    aria-expanded={mobileOpen}
-                >
-                    {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-                </Button>
+                {/* Mobile: theme toggle + hamburger */}
+                <div className="flex md:hidden items-center gap-1">
+                    <ThemeToggle />
+                    <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        aria-label="Toggle navigation"
+                        aria-expanded={mobileOpen}
+                    >
+                        {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                    </Button>
+                </div>
             </div>
 
             {/* Mobile menu */}
@@ -74,16 +116,38 @@ export function PublicNavbar() {
                             </Button>
                         ))}
                         <hr className="my-2 border-border" />
-                        <Button variant="ghost" className="justify-start" asChild>
-                            <Link to="/login" onClick={() => setMobileOpen(false)}>
-                                Sign In
-                            </Link>
-                        </Button>
-                        <Button variant="default" asChild>
-                            <Link to="/register" onClick={() => setMobileOpen(false)}>
-                                Get Started
-                            </Link>
-                        </Button>
+
+                        {isLoggedIn ? (
+                            <>
+                                <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileOpen(false)}>
+                                    <Link to={getDashboardPath(user.role)}>
+                                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                                        Dashboard
+                                    </Link>
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    className="justify-start text-destructive hover:text-destructive"
+                                    onClick={() => { setMobileOpen(false); logout() }}
+                                >
+                                    <LogOut className="h-4 w-4 mr-2" />
+                                    Log Out
+                                </Button>
+                            </>
+                        ) : (
+                            <>
+                                <Button variant="ghost" className="justify-start" asChild>
+                                    <Link to="/login" onClick={() => setMobileOpen(false)}>
+                                        Sign In
+                                    </Link>
+                                </Button>
+                                <Button variant="default" asChild>
+                                    <Link to="/register" onClick={() => setMobileOpen(false)}>
+                                        Get Started
+                                    </Link>
+                                </Button>
+                            </>
+                        )}
                     </nav>
                 </div>
             )}

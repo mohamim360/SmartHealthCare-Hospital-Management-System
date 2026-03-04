@@ -58,6 +58,7 @@ import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAppointmentIdRouteImport } from './routes/api/appointment/$id'
 import { Route as ApiAdminIdRouteImport } from './routes/api/admin/$id'
+import { Route as ApiPublicLandingDataIndexRouteImport } from './routes/api/public/landing-data/index'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -318,6 +319,12 @@ const ApiAdminIdRoute = ApiAdminIdRouteImport.update({
   path: '/api/admin/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicLandingDataIndexRoute =
+  ApiPublicLandingDataIndexRouteImport.update({
+    id: '/api/public/landing-data/',
+    path: '/api/public/landing-data/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -369,6 +376,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/doctor/': typeof DashboardDoctorIndexRoute
   '/dashboard/patient/': typeof DashboardPatientIndexRoute
+  '/api/public/landing-data/': typeof ApiPublicLandingDataIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -420,6 +428,7 @@ export interface FileRoutesByTo {
   '/dashboard/admin': typeof DashboardAdminIndexRoute
   '/dashboard/doctor': typeof DashboardDoctorIndexRoute
   '/dashboard/patient': typeof DashboardPatientIndexRoute
+  '/api/public/landing-data': typeof ApiPublicLandingDataIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -472,6 +481,7 @@ export interface FileRoutesById {
   '/dashboard/admin/': typeof DashboardAdminIndexRoute
   '/dashboard/doctor/': typeof DashboardDoctorIndexRoute
   '/dashboard/patient/': typeof DashboardPatientIndexRoute
+  '/api/public/landing-data/': typeof ApiPublicLandingDataIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -525,6 +535,7 @@ export interface FileRouteTypes {
     | '/dashboard/admin/'
     | '/dashboard/doctor/'
     | '/dashboard/patient/'
+    | '/api/public/landing-data/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -576,6 +587,7 @@ export interface FileRouteTypes {
     | '/dashboard/admin'
     | '/dashboard/doctor'
     | '/dashboard/patient'
+    | '/api/public/landing-data'
   id:
     | '__root__'
     | '/'
@@ -627,6 +639,7 @@ export interface FileRouteTypes {
     | '/dashboard/admin/'
     | '/dashboard/doctor/'
     | '/dashboard/patient/'
+    | '/api/public/landing-data/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -661,6 +674,7 @@ export interface RootRouteChildren {
   ApiPrescriptionIndexRoute: typeof ApiPrescriptionIndexRoute
   ApiReviewIndexRoute: typeof ApiReviewIndexRoute
   ApiScheduleIndexRoute: typeof ApiScheduleIndexRoute
+  ApiPublicLandingDataIndexRoute: typeof ApiPublicLandingDataIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1008,6 +1022,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/landing-data/': {
+      id: '/api/public/landing-data/'
+      path: '/api/public/landing-data'
+      fullPath: '/api/public/landing-data/'
+      preLoaderRoute: typeof ApiPublicLandingDataIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -1092,6 +1113,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPrescriptionIndexRoute: ApiPrescriptionIndexRoute,
   ApiReviewIndexRoute: ApiReviewIndexRoute,
   ApiScheduleIndexRoute: ApiScheduleIndexRoute,
+  ApiPublicLandingDataIndexRoute: ApiPublicLandingDataIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,6 +1,6 @@
 
 
-import { Heart, Loader2 } from 'lucide-react'
+import { Heart, Loader2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FormField, FormRoot } from './form-field'
 import { useZodForm } from '@/hooks/useZodForm'
@@ -52,6 +52,15 @@ export function LoginForm({ onSubmit, isLoading = false, error }: LoginFormProps
             {/* Right — Form panel */}
             <div className="flex-1 flex flex-col items-center justify-center p-8">
                 <div className="w-full max-w-sm space-y-6">
+                    {/* Back to Home */}
+                    <Link
+                        to="/"
+                        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        <ArrowLeft className="h-3.5 w-3.5" />
+                        Back to Home
+                    </Link>
+
                     {/* Mobile brand */}
                     <div className="flex items-center gap-2 lg:hidden">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">

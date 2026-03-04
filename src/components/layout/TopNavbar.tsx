@@ -1,8 +1,9 @@
 
 
-import { Menu, Moon, Sun, LogOut, Bell } from 'lucide-react'
+import { Menu, LogOut, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { cn } from '@/lib/utils'
 
 interface TopNavbarProps {
@@ -10,8 +11,6 @@ interface TopNavbarProps {
     userAvatar?: string
     userRole?: string
     onMenuToggle?: () => void
-    theme?: 'light' | 'dark'
-    onThemeToggle?: () => void
     onLogout?: () => void
     className?: string
 }
@@ -21,8 +20,6 @@ export function TopNavbar({
     userAvatar,
     userRole,
     onMenuToggle,
-    theme = 'light',
-    onThemeToggle,
     onLogout,
     className,
 }: TopNavbarProps) {
@@ -68,19 +65,8 @@ export function TopNavbar({
                     </span>
                 </Button>
 
-                {/* Theme toggle */}
-                <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    onClick={onThemeToggle}
-                    aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-                >
-                    {theme === 'light' ? (
-                        <Moon className="h-4 w-4" />
-                    ) : (
-                        <Sun className="h-4 w-4" />
-                    )}
-                </Button>
+                {/* Theme toggle — uses useTheme() internally */}
+                <ThemeToggle />
 
                 {/* User section */}
                 <div className="flex items-center gap-3 ml-2 pl-2 border-l">

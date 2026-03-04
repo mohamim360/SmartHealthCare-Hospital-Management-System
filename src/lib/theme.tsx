@@ -14,21 +14,42 @@ const ThemeContext = React.createContext<ThemeContextValue | undefined>(undefine
 
 const STORAGE_KEY = 'smarthealthcare-theme'
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setThemeState] = React.useState<Theme>(() => {
-        if (typeof window === 'undefined') return 'system'
-        return (localStorage.getItem(STORAGE_KEY) as Theme) ?? 'system'
-    })
+const isServer = typeof window === 'undefined'
 
-    const resolved = React.useMemo<'light' | 'dark'>(() => {
-        if (theme !== 'system') return theme
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+function getStoredTheme(): Theme {
+    if (isServer) return 'system'
+    return (localStorage.getItem(STORAGE_KEY) as Theme) ?? 'system'
+}
+
+function resolveTheme(theme: Theme): 'light' | 'dark' {
+    if (theme !== 'system') return theme
+    if (isServer) return 'light' // SSR default — the inline script handles the real value
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+    const [theme, setThemeState] = React.useState<Theme>(getStoredTheme)
+    const [resolved, setResolved] = React.useState<'light' | 'dark'>(() => resolveTheme(theme))
+
+    // Re-resolve when theme changes (client-side only)
+    React.useEffect(() => {
+        setResolved(resolveTheme(theme))
     }, [theme])
 
+    // Apply dark class to <html>
     React.useEffect(() => {
         const root = document.documentElement
         root.classList.toggle('dark', resolved === 'dark')
     }, [resolved])
+
+    // Listen for system preference changes when theme === 'system'
+    React.useEffect(() => {
+        if (theme !== 'system') return
+        const mq = window.matchMedia('(prefers-color-scheme: dark)')
+        const handler = (e: MediaQueryListEvent) => setResolved(e.matches ? 'dark' : 'light')
+        mq.addEventListener('change', handler)
+        return () => mq.removeEventListener('change', handler)
+    }, [theme])
 
     const setTheme = React.useCallback((t: Theme) => {
         setThemeState(t)

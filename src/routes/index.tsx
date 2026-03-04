@@ -1,18 +1,74 @@
 
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Heart, Calendar, Stethoscope, Shield, ArrowRight, Search, Clock, CheckCircle } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Heart, Calendar, Stethoscope, Shield, ArrowRight, Search, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { PublicNavbar } from '@/components/layout/PublicNavbar'
 import { PublicFooter } from '@/components/layout/PublicFooter'
 import { MotionSlideUp, MotionFadeIn, MotionStaggerList, staggerItem } from '@/components/ui/motion'
 import { motion } from 'framer-motion'
+import { api } from '@/lib/api'
+import { LandingStats } from '@/components/landing/LandingStats'
+import { FeaturedDoctors } from '@/components/landing/FeaturedDoctors'
+import { Testimonials } from '@/components/landing/Testimonials'
+import type { LandingPageData } from '@/lib/landing/landing.service'
 
-export const Route = createFileRoute('/')({
-  component: HomePage,
-})
+export const Route = createFileRoute('/')(
+  {
+    component: HomePage,
+    head: () => ({
+      meta: [
+        { title: 'Smart Health Care — Modern Healthcare Made Simple' },
+        {
+          name: 'description',
+          content:
+            'Find qualified doctors, book appointments instantly, and manage your health records — all from one trusted platform.',
+        },
+      ],
+    }),
+  },
+)
+
+function useLandingData() {
+  const [data, setData] = useState<LandingPageData | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchData() {
+      try {
+        const res = await api.get<LandingPageData>('/api/public/landing-data')
+        if (!cancelled) {
+          if (res.success && res.data) {
+            setData(res.data as LandingPageData)
+          } else {
+            setError(res.message || 'Failed to load data')
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setError('Failed to connect to server')
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    fetchData()
+    return () => { cancelled = true }
+  }, [])
+
+  return { data, isLoading, error }
+}
 
 function HomePage() {
+  const { data, isLoading, error } = useLandingData()
+
   return (
     <div className="min-h-screen flex flex-col">
       <PublicNavbar />
@@ -54,21 +110,8 @@ function HomePage() {
                     </Button>
                   </div>
 
-                  {/* Stats */}
-                  <div className="flex gap-8 pt-4">
-                    <div>
-                      <p className="text-2xl font-bold text-primary">500+</p>
-                      <p className="text-sm text-muted-foreground">Qualified Doctors</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-primary">50k+</p>
-                      <p className="text-sm text-muted-foreground">Happy Patients</p>
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-primary">4.9</p>
-                      <p className="text-sm text-muted-foreground">User Rating</p>
-                    </div>
-                  </div>
+                  {/* Stats — now real data */}
+                  <LandingStats stats={data?.stats ?? null} isLoading={isLoading} />
                 </div>
               </MotionSlideUp>
 
@@ -145,8 +188,14 @@ function HomePage() {
           </div>
         </section>
 
+        {/* Featured Doctors — real data */}
+        <FeaturedDoctors
+          doctors={data?.featuredDoctors ?? null}
+          isLoading={isLoading}
+        />
+
         {/* How It Works */}
-        <section className="py-20">
+        <section className="py-20 bg-muted/30">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold tracking-tight">How It Works</h2>
@@ -187,6 +236,24 @@ function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* Testimonials — real data */}
+        <Testimonials
+          testimonials={data?.testimonials ?? null}
+          isLoading={isLoading}
+        />
+
+        {/* Error fallback */}
+        {error && !isLoading && (
+          <section className="py-8">
+            <div className="mx-auto max-w-7xl px-4 lg:px-8">
+              <div className="flex items-center gap-3 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <p>Some data may be unavailable. {error}</p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* CTA Section */}
         <section className="py-20 bg-primary text-primary-foreground">

@@ -9,8 +9,6 @@ interface AppShellProps {
     role?: string
     userName?: string
     userAvatar?: string
-    theme?: 'light' | 'dark'
-    onThemeToggle?: () => void
     onLogout?: () => void
 }
 
@@ -19,8 +17,6 @@ export function AppShell({
     role = 'ADMIN',
     userName,
     userAvatar,
-    theme = 'light',
-    onThemeToggle,
     onLogout,
 }: AppShellProps) {
     const [sidebarOpen, setSidebarOpen] = React.useState(false)
@@ -63,8 +59,6 @@ export function AppShell({
                     userName={userName}
                     userAvatar={userAvatar}
                     userRole={role}
-                    theme={theme}
-                    onThemeToggle={onThemeToggle}
                     onLogout={onLogout}
                     onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
                 />

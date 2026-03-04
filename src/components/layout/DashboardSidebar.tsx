@@ -10,6 +10,7 @@ import {
     Star,
     Settings,
     Heart,
+    Home,
     type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -122,16 +123,27 @@ export function DashboardSidebar({ role = 'ADMIN', className, onNavigate }: Dash
             </nav>
 
             {/* Footer */}
-            <div className="border-t border-sidebar-border px-3 py-4">
+            <div className="border-t border-sidebar-border px-3 py-4 space-y-1">
                 <Button
                     variant="ghost"
                     size="default"
                     asChild
                     className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent"
                 >
-                    <Link to="/dashboard/settings">
+                    <Link to="/dashboard/settings" onClick={onNavigate}>
                         <Settings className="w-4 h-4 shrink-0" />
                         <span>Settings</span>
+                    </Link>
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="default"
+                    asChild
+                    className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent"
+                >
+                    <Link to="/" onClick={onNavigate}>
+                        <Home className="w-4 h-4 shrink-0" />
+                        <span>Back to Home</span>
                     </Link>
                 </Button>
             </div>

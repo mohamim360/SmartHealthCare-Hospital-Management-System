@@ -7,7 +7,8 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { AuthProvider } from '@/hooks/useAuth'
-
+import { ThemeProvider } from '@/lib/theme'
+import { Toaster } from '@/components/ui/toast'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
 
@@ -39,6 +40,12 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         href: appCss,
       },
     ],
+    scripts: [
+      {
+        // Prevent dark mode flash — runs before paint
+        children: `(function(){try{var t=localStorage.getItem('smarthealthcare-theme');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+      },
+    ],
   }),
 
   shellComponent: RootDocument,
@@ -66,9 +73,12 @@ function RootDocument({ children }: { children: React.ReactNode }) {
           Skip to main content
         </a>
 
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+          <Toaster />
+        </ThemeProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',
