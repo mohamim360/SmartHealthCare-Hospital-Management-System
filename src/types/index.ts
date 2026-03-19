@@ -1,0 +1,12 @@
+
+export * from './user.interface'
+export * from './admin.interface'
+export * from './doctor.interface'
+export * from './patient.interface'
+export * from './appointment.interface'
+export * from './prescription.interface'
+export * from './review.interface'
+export * from './schedule.interface'
+export * from './speciality.interface'
+export * from './meta.interface'
+export * from './dashboard.interface'

@@ -1,0 +1,10 @@
+
+export * from './auth.validation'
+export * from './admin.validation'
+export * from './doctor.validation'
+export * from './patient.validation'
+export * from './appointment.validation'
+export * from './prescription.validation'
+export * from './review.validation'
+export * from './schedule.validation'
+export * from './speciality.validation'

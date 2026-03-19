@@ -1,0 +1,154 @@
+import { AppointmentStatus, PaymentStatus } from '@/generated/prisma/client'
+import { prisma } from '@/db'
+import type { UserPayload } from '@/lib/auth/auth.middleware'
+
+export type CreateAppointmentInput = {
+  doctorId: string
+  scheduleId: string
+}
+
+export async function createAppointment(user: UserPayload, payload: CreateAppointmentInput) {
+  const patient = await prisma.patient.findUniqueOrThrow({
+    where: { email: user.email },
+  })
+
+  const doctor = await prisma.doctor.findUniqueOrThrow({
+    where: { id: payload.doctorId, isDeleted: false },
+  })
+
+  const doctorSchedule = await prisma.doctorSchedules.findFirstOrThrow({
+    where: {
+      doctorId: payload.doctorId,
+      scheduleId: payload.scheduleId,
+      isBooked: false,
+    },
+  })
+
+  const videoCallingId = crypto.randomUUID()
+  const transactionId = crypto.randomUUID()
+
+  const result = await prisma.$transaction(
+    async (tnx) => {
+      const appointment = await tnx.appointment.create({
+        data: {
+          patientId: patient.id,
+          doctorId: doctor.id,
+          scheduleId: payload.scheduleId,
+          videoCallingId,
+        },
+      })
+
+      await tnx.doctorSchedules.update({
+        where: {
+          doctorId_scheduleId: {
+            doctorId: doctorSchedule.doctorId,
+            scheduleId: payload.scheduleId,
+          },
+        },
+        data: { isBooked: true },
+      })
+
+      await tnx.payment.create({
+        data: {
+          appointmentId: appointment.id,
+          amount: doctor.appointmentFee,
+          transactionId,
+        },
+      })
+
+      return appointment
+    },
+    { maxWait: 10000, timeout: 15000 },
+  )
+
+  return result
+}
+
+/**
+ * Change appointment status.
+ * - DOCTOR/ADMIN can set any valid status
+ * - PATIENT can only CANCEL their own SCHEDULED appointments
+ */
+export async function changeAppointmentStatus(
+  user: UserPayload,
+  appointmentId: string,
+  newStatus: string,
+) {
+  const validStatuses = ['SCHEDULED', 'INPROGRESS', 'COMPLETED', 'CANCEL']
+  if (!validStatuses.includes(newStatus)) {
+    throw new Error(`Invalid status: ${newStatus}`)
+  }
+
+  const appointment = await prisma.appointment.findUniqueOrThrow({
+    where: { id: appointmentId },
+    include: { doctor: true, patient: true },
+  })
+
+  // Patient can only cancel their own SCHEDULED appointments
+  if (user.role === 'PATIENT') {
+    const patient = await prisma.patient.findUnique({ where: { email: user.email } })
+    if (!patient || patient.id !== appointment.patientId) {
+      throw new Error('This is not your appointment')
+    }
+    if (newStatus !== 'CANCEL') {
+      throw new Error('Patient can only cancel appointments')
+    }
+    if (appointment.status !== AppointmentStatus.SCHEDULED) {
+      throw new Error('Can only cancel SCHEDULED appointments')
+    }
+  }
+
+  // Doctor can only change their own appointments
+  if (user.role === 'DOCTOR') {
+    if (user.email !== appointment.doctor.email) {
+      throw new Error('This is not your appointment')
+    }
+  }
+  // ADMIN / SUPER_ADMIN can change any appointment
+
+  return prisma.appointment.update({
+    where: { id: appointmentId },
+    data: { status: newStatus as AppointmentStatus },
+    include: {
+      patient: { select: { id: true, name: true, email: true } },
+      doctor: { select: { id: true, name: true, email: true, designation: true } },
+      schedule: { select: { startDateTime: true, endDateTime: true } },
+    },
+  })
+}
+
+/**
+ * Mark appointment payment as PAID.
+ */
+export async function markPaymentPaid(user: UserPayload, appointmentId: string) {
+  const appointment = await prisma.appointment.findUniqueOrThrow({
+    where: { id: appointmentId },
+    include: { payment: true, patient: true },
+  })
+
+  // Only the patient who owns the appointment can pay
+  if (user.role === 'PATIENT') {
+    const patient = await prisma.patient.findUnique({ where: { email: user.email } })
+    if (!patient || patient.id !== appointment.patientId) {
+      throw new Error('This is not your appointment')
+    }
+  }
+
+  if (!appointment.payment) {
+    throw new Error('No payment record found for this appointment')
+  }
+  if (appointment.payment.status === PaymentStatus.PAID) {
+    throw new Error('Payment already completed')
+  }
+
+  return prisma.$transaction(async (tnx) => {
+    await tnx.payment.update({
+      where: { id: appointment.payment!.id },
+      data: { status: PaymentStatus.PAID },
+    })
+    return tnx.appointment.update({
+      where: { id: appointmentId },
+      data: { paymentStatus: PaymentStatus.PAID },
+    })
+  })
+}
