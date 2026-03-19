@@ -12,6 +12,7 @@ import { api } from '@/lib/api'
 import { LandingStats } from '@/components/landing/LandingStats'
 import { FeaturedDoctors } from '@/components/landing/FeaturedDoctors'
 import { Testimonials } from '@/components/landing/Testimonials'
+import { AiChatWidget } from '@/components/ai/AiChatWidget'
 import type { LandingPageData } from '@/lib/landing/landing.service'
 
 export const Route = createFileRoute('/')(
@@ -75,7 +76,7 @@ function HomePage() {
 
       <main id="main-content" className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 py-20 lg:py-32">
+        <section className="relative overflow-hidden bg-gradient-to-br from-primary/5 via-background to-accent/5 py-20 lg:py-10">
           <div className="mx-auto max-w-7xl px-4 lg:px-8">
             <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
               <MotionSlideUp>
@@ -272,7 +273,7 @@ function HomePage() {
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" asChild>
+              <Button size="lg" variant="secondary" asChild>
                 <Link to="/consultation">Browse Doctors</Link>
               </Button>
             </div>
@@ -281,6 +282,9 @@ function HomePage() {
       </main>
 
       <PublicFooter />
+
+      {/* AI Health Assistant */}
+      <AiChatWidget context="landing" />
     </div>
   )
 }

@@ -8,14 +8,16 @@ export const Route = createFileRoute('/api/doctor/')({
         handlers: {
             GET: async ({ request }) => {
                 const url = new URL(request.url)
-                const query = {
-                    page: url.searchParams.get('page') ?? undefined,
-                    limit: url.searchParams.get('limit') ?? undefined,
-                    sortBy: url.searchParams.get('sortBy') ?? undefined,
-                    sortOrder: url.searchParams.get('sortOrder') ?? undefined,
-                    searchTerm: url.searchParams.get('searchTerm') ?? undefined,
-                    gender: url.searchParams.get('gender') ?? undefined,
-                    speciality: url.searchParams.get('speciality') ?? undefined,
+                const query: Record<string, string | undefined> = {}
+
+                // Collect all search params
+                for (const key of [
+                    'page', 'limit', 'sortBy', 'sortOrder', 'searchTerm',
+                    'gender', 'speciality', 'designation',
+                    'minExperience', 'maxExperience',
+                    'minFee', 'maxFee', 'minRating', 'availability',
+                ]) {
+                    query[key] = url.searchParams.get(key) ?? undefined
                 }
 
                 const parsed = doctorListQuerySchema.safeParse(query)
@@ -24,9 +26,10 @@ export const Route = createFileRoute('/api/doctor/')({
                 }
 
                 try {
+                    const { page, limit, sortBy, sortOrder, searchTerm, ...filters } = parsed.data
                     const result = await getDoctors(
-                        { searchTerm: parsed.data.searchTerm, gender: parsed.data.gender, speciality: parsed.data.speciality },
-                        { page: parsed.data.page, limit: parsed.data.limit, sortBy: parsed.data.sortBy, sortOrder: parsed.data.sortOrder },
+                        { searchTerm, ...filters },
+                        { page, limit, sortBy, sortOrder },
                     )
 
                     return sendSuccess({

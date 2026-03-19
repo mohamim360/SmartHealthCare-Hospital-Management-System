@@ -8,4 +8,13 @@ export const doctorListQuerySchema = z.object({
     searchTerm: z.string().min(1).optional(),
     gender: z.enum(['MALE', 'FEMALE']).optional(),
     speciality: z.string().optional(),
+    designation: z.string().optional(),
+    minExperience: z.coerce.number().min(0).optional(),
+    maxExperience: z.coerce.number().min(0).optional(),
+    minFee: z.coerce.number().min(0).optional(),
+    maxFee: z.coerce.number().min(0).optional(),
+    minRating: z.coerce.number().min(0).max(5).optional(),
+    availability: z.enum(['today', 'thisWeek']).optional(),
 })
+
+export type DoctorListQuery = z.infer<typeof doctorListQuerySchema>

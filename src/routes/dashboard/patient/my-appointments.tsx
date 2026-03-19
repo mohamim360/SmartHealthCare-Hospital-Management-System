@@ -108,17 +108,15 @@ function PatientMyAppointmentsPage() {
     }
   }
 
-  // --- Pay ---
+  // --- Pay via Stripe ---
   const handlePay = async (appointmentId: string) => {
     setPayingId(appointmentId)
-    const res = await api.patch(`/api/appointment/${appointmentId}`, {
-      action: 'pay',
-    })
-    setPayingId(null)
-    if (res.success) {
-      fetchAppointments()
+    const res = await api.post('/api/payment/checkout', { appointmentId })
+    if (res.success && res.data?.url) {
+      window.location.href = res.data.url
     } else {
-      alert(res.message || 'Failed to process payment')
+      setPayingId(null)
+      alert(res.message || 'Failed to create payment session')
     }
   }
 

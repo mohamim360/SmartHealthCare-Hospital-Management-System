@@ -1,149 +1,231 @@
-
-
-import { useState, useEffect, useCallback } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { Search, Star, MapPin, Briefcase, ArrowRight } from 'lucide-react'
+import { useState } from 'react'
+import { createFileRoute } from '@tanstack/react-router'
+import { SlidersHorizontal, X, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useDebounce } from '@/hooks'
-import { api, buildQuery } from '@/lib/api'
-import { MotionStaggerList, staggerItem } from '@/components/ui/motion'
-import { motion } from 'framer-motion'
 import { PublicNavbar } from '@/components/layout/PublicNavbar'
 import { PublicFooter } from '@/components/layout/PublicFooter'
+import { MotionStaggerList, staggerItem } from '@/components/ui/motion'
+import { motion } from 'framer-motion'
+import { useDoctorFilter } from '@/hooks/useDoctorFilter'
+import { DoctorSearchBar } from '@/components/consultation/DoctorSearchBar'
+import { DoctorFilterSidebar } from '@/components/consultation/DoctorFilterSidebar'
+import { DoctorCard } from '@/components/consultation/DoctorCard'
+import { DoctorGridSkeleton } from '@/components/consultation/DoctorGridSkeleton'
+import { EmptyDoctorState } from '@/components/consultation/EmptyDoctorState'
 
 export const Route = createFileRoute('/consultation')({
     component: ConsultationPage,
+    head: () => ({
+        meta: [
+            { title: 'Find a Doctor — Smart Health Care' },
+            { name: 'description', content: 'Browse our network of qualified healthcare professionals. Filter by specialty, experience, rating, and more.' },
+        ],
+    }),
 })
 
 function ConsultationPage() {
-    const [doctors, setDoctors] = useState<any[]>([])
-    const [total, setTotal] = useState(0)
-    const [page, setPage] = useState(1)
-    const [search, setSearch] = useState('')
-    const [loading, setLoading] = useState(true)
-    const debouncedSearch = useDebounce(search, 400)
+    const {
+        doctors,
+        total,
+        isLoading,
+        error,
+        filters,
+        setFilter,
+        resetFilters,
+        activeFilterCount,
+        page,
+        setPage,
+        totalPages,
+    } = useDoctorFilter(12)
 
-    const fetchDoctors = useCallback(async () => {
-        setLoading(true)
-        const qs = buildQuery({ page, limit: 12, searchTerm: debouncedSearch || undefined })
-        const res = await api.get<any[]>(`/api/doctor${qs}`)
-        if (res.success) {
-            setDoctors(res.data ?? [])
-            setTotal(res.meta?.total ?? 0)
-        }
-        setLoading(false)
-    }, [page, debouncedSearch])
-
-    useEffect(() => { fetchDoctors() }, [fetchDoctors])
-
-    const totalPages = Math.ceil(total / 12)
+    const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
     return (
         <div className="min-h-screen flex flex-col">
             <PublicNavbar />
+
             <div className="flex-1 bg-gradient-to-br from-background via-primary/5 to-background">
-                <div className="max-w-7xl mx-auto px-4 py-12 space-y-8">
+                <div className="max-w-7xl mx-auto px-4 py-8 lg:py-12 space-y-6">
                     {/* Header */}
-                    <div className="text-center space-y-4">
-                        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                    <div className="text-center space-y-3">
+                        <h1 className="text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
                             Find Your Doctor
                         </h1>
-                        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                            Browse our network of {total} qualified healthcare professionals and book an appointment today.
+                        <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+                            Browse our network of {total > 0 ? total : ''} qualified healthcare professionals and book an appointment today.
                         </p>
                     </div>
 
-                    {/* Search */}
-                    <div className="max-w-lg mx-auto relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input
-                            placeholder="Search by name, speciality, or designation…"
-                            className="pl-12 h-12 text-base rounded-xl border-2 focus:border-primary"
-                            value={search}
-                            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-                        />
+                    {/* Search bar + mobile filter toggle */}
+                    <div className="flex gap-3 items-start">
+                        <div className="flex-1">
+                            <DoctorSearchBar
+                                searchTerm={filters.searchTerm}
+                                sortBy={filters.sortBy}
+                                sortOrder={filters.sortOrder}
+                                onSearchChange={(v) => setFilter('searchTerm', v)}
+                                onSortChange={(sb, so) => {
+                                    setFilter('sortBy', sb)
+                                    setFilter('sortOrder', so)
+                                }}
+                            />
+                        </div>
+                        {/* Mobile filter toggle */}
+                        <Button
+                            variant="outline"
+                            size="default"
+                            className="lg:hidden h-11 shrink-0 relative"
+                            onClick={() => setMobileFiltersOpen(true)}
+                        >
+                            <SlidersHorizontal className="h-4 w-4 mr-1.5" />
+                            Filters
+                            {activeFilterCount > 0 && (
+                                <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                                    {activeFilterCount}
+                                </Badge>
+                            )}
+                        </Button>
                     </div>
 
-                    {/* Doctor Grid */}
-                    {loading ? (
-                        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                            {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-64 rounded-xl" />)}
+                    {/* Main content: sidebar + grid */}
+                    <div className="flex gap-6">
+                        {/* Desktop sidebar */}
+                        <div className="hidden lg:block w-64 shrink-0">
+                            <div className="sticky top-20">
+                                <DoctorFilterSidebar
+                                    filters={filters}
+                                    setFilter={setFilter}
+                                    resetFilters={resetFilters}
+                                    activeFilterCount={activeFilterCount}
+                                />
+                            </div>
                         </div>
-                    ) : doctors.length === 0 ? (
-                        <div className="text-center py-20 text-muted-foreground">
-                            <p className="text-lg">No doctors found matching your search.</p>
-                        </div>
-                    ) : (
-                        <MotionStaggerList className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-                            {doctors.map((d: any) => (
-                                <motion.div key={d.id} variants={staggerItem}>
-                                    <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-2 hover:border-primary/30">
-                                        <CardHeader className="pb-3">
-                                            <div className="flex items-start gap-4">
-                                                <Avatar className="h-14 w-14 ring-2 ring-primary/20">
-                                                    <AvatarFallback className="bg-primary/10 text-primary font-bold">
-                                                        {d.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="font-bold text-base truncate">{d.name}</h3>
-                                                    <p className="text-sm text-primary font-medium">{d.designation}</p>
-                                                    <p className="text-xs text-muted-foreground">{d.qualification}</p>
-                                                </div>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent className="space-y-3">
-                                            <div className="flex flex-wrap gap-2">
-                                                <Badge variant="secondary" className="text-xs">
-                                                    <Briefcase className="h-3 w-3 mr-1" />
-                                                    {d.experience} yrs exp
-                                                </Badge>
-                                                <Badge variant="secondary" className="text-xs">
-                                                    <Star className="h-3 w-3 mr-1 fill-yellow-400 text-yellow-400" />
-                                                    {d.averageRating?.toFixed(1) ?? '—'}
-                                                </Badge>
-                                                {d.currentWorkingPlace && (
-                                                    <Badge variant="outline" className="text-xs">
-                                                        <MapPin className="h-3 w-3 mr-1" />
-                                                        {d.currentWorkingPlace}
-                                                    </Badge>
-                                                )}
-                                            </div>
 
-                                            <div className="flex items-center justify-between pt-2 border-t">
-                                                <div>
-                                                    <p className="text-xs text-muted-foreground">Consultation Fee</p>
-                                                    <p className="font-bold text-primary text-lg">৳{d.appointmentFee}</p>
-                                                </div>
-                                                <Button size="sm" asChild className="group-hover:shadow-md transition-shadow">
-                                                    <Link to="/doctor/$id" params={{ id: d.id }}>
-                                                        View Profile
-                                                        <ArrowRight className="h-3 w-3 ml-1" />
-                                                    </Link>
+                        {/* Doctor grid */}
+                        <div className="flex-1 min-w-0">
+                            {/* Results count */}
+                            {!isLoading && (
+                                <div className="flex items-center justify-between mb-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        {total > 0 ? (
+                                            <>Showing <span className="font-medium text-foreground">{doctors.length}</span> of <span className="font-medium text-foreground">{total}</span> doctors</>
+                                        ) : (
+                                            'No results'
+                                        )}
+                                    </p>
+                                    {activeFilterCount > 0 && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-xs h-7"
+                                            onClick={resetFilters}
+                                        >
+                                            Clear filters ({activeFilterCount})
+                                        </Button>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Error state */}
+                            {error && (
+                                <div className="flex items-center gap-3 rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive mb-4">
+                                    <AlertCircle className="h-4 w-4 shrink-0" />
+                                    <p>{error}</p>
+                                </div>
+                            )}
+
+                            {/* Loading skeleton */}
+                            {isLoading ? (
+                                <DoctorGridSkeleton count={6} />
+                            ) : doctors.length === 0 ? (
+                                <EmptyDoctorState
+                                    hasFilters={activeFilterCount > 0 || !!filters.searchTerm}
+                                    onResetFilters={resetFilters}
+                                />
+                            ) : (
+                                <MotionStaggerList className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+                                    {doctors.map((d: any) => (
+                                        <motion.div key={d.id} variants={staggerItem}>
+                                            <DoctorCard doctor={d} />
+                                        </motion.div>
+                                    ))}
+                                </MotionStaggerList>
+                            )}
+
+                            {/* Pagination */}
+                            {totalPages > 1 && (
+                                <div className="flex items-center justify-center gap-2 pt-8">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={page <= 1}
+                                        onClick={() => setPage(page - 1)}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
+                                            // Show pages around current page
+                                            let pageNum: number
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1
+                                            } else if (page <= 3) {
+                                                pageNum = i + 1
+                                            } else if (page >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i
+                                            } else {
+                                                pageNum = page - 2 + i
+                                            }
+                                            return (
+                                                <Button
+                                                    key={pageNum}
+                                                    variant={page === pageNum ? 'default' : 'ghost'}
+                                                    size="sm"
+                                                    className="h-8 w-8 p-0"
+                                                    onClick={() => setPage(pageNum)}
+                                                >
+                                                    {pageNum}
                                                 </Button>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </motion.div>
-                            ))}
-                        </MotionStaggerList>
-                    )}
-
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                        <div className="flex items-center justify-center gap-4 pt-4">
-                            <Button variant="outline" disabled={page <= 1} onClick={() => setPage(page - 1)}>Previous</Button>
-                            <span className="text-sm text-muted-foreground">Page {page} of {totalPages}</span>
-                            <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage(page + 1)}>Next</Button>
+                                            )
+                                        })}
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={page >= totalPages}
+                                        onClick={() => setPage(page + 1)}
+                                    >
+                                        Next
+                                    </Button>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
             </div>
+
+            {/* Mobile filter overlay */}
+            {mobileFiltersOpen && (
+                <>
+                    <div
+                        className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+                        onClick={() => setMobileFiltersOpen(false)}
+                        aria-hidden="true"
+                    />
+                    <div className="fixed inset-y-0 left-0 z-50 w-80 max-w-[85vw] lg:hidden animate-in slide-in-from-left duration-300">
+                        <DoctorFilterSidebar
+                            filters={filters}
+                            setFilter={setFilter}
+                            resetFilters={resetFilters}
+                            activeFilterCount={activeFilterCount}
+                            isMobile
+                            onClose={() => setMobileFiltersOpen(false)}
+                        />
+                    </div>
+                </>
+            )}
+
             <PublicFooter />
         </div>
     )

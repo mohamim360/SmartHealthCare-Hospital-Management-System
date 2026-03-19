@@ -1,13 +1,12 @@
-
-
 import { useState, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { Calendar, Stethoscope, CheckCircle2 } from 'lucide-react'
+import { Calendar, Stethoscope, CheckCircle2, CreditCard, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/dashboard/patient/book-appointment')({
   component: BookAppointmentPage,
@@ -19,6 +18,7 @@ function BookAppointmentPage() {
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [redirecting, setRedirecting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -40,24 +40,65 @@ function BookAppointmentPage() {
     }
   }
 
-  // Step 3: Submit appointment
+  // Step 3: Submit appointment + redirect to Stripe
   const handleBooking = async () => {
     if (!selectedDoctor || !selectedSchedule) return
 
     setSubmitting(true)
     setError(null)
 
+    // Create appointment
     const res = await api.post('/api/appointment', {
       doctorId: selectedDoctor.id,
       scheduleId: selectedSchedule,
     })
 
-    if (res.success) {
-      setSuccess(true)
-    } else {
+    if (!res.success) {
       setError(res.message || 'Failed to book appointment')
+      setSubmitting(false)
+      return
     }
-    setSubmitting(false)
+
+    const appointmentId = res.data?.id
+    if (!appointmentId) {
+      setError('Appointment created but ID missing')
+      setSubmitting(false)
+      return
+    }
+
+    // Create Stripe Checkout session
+    setRedirecting(true)
+    toast.info('Redirecting to payment...')
+
+    const payRes = await api.post('/api/payment/checkout', { appointmentId })
+
+    if (payRes.success && payRes.data?.url) {
+      // Redirect to Stripe Checkout
+      window.location.href = payRes.data.url
+    } else {
+      // Appointment created but payment redirect failed — still show success
+      toast.warning('Appointment booked! You can pay later from My Appointments.')
+      setRedirecting(false)
+      setSubmitting(false)
+      setSuccess(true)
+    }
+  }
+
+  if (redirecting) {
+    return (
+      <div className="max-w-lg mx-auto py-20 text-center space-y-4">
+        <div className="flex items-center justify-center">
+          <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <CreditCard className="h-8 w-8 text-primary animate-pulse" />
+          </div>
+        </div>
+        <h2 className="text-2xl font-bold">Redirecting to Payment</h2>
+        <p className="text-muted-foreground">
+          Please wait while we redirect you to Stripe's secure checkout...
+        </p>
+        <Loader2 className="h-6 w-6 animate-spin mx-auto text-primary" />
+      </div>
+    )
   }
 
   if (success) {
@@ -67,6 +108,9 @@ function BookAppointmentPage() {
         <h2 className="text-2xl font-bold">Appointment Booked!</h2>
         <p className="text-muted-foreground">
           Your appointment with {selectedDoctor?.name} has been successfully scheduled.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          You can complete payment from your appointments page.
         </p>
         <Button onClick={() => { setSuccess(false); setSelectedDoctor(null); setSelectedSchedule(null) }}>
           Book Another
@@ -188,15 +232,26 @@ function BookAppointmentPage() {
               )}
 
               {selectedSchedule && (
-                <div className="mt-6 pt-4 border-t">
+                <div className="mt-6 pt-4 border-t space-y-3">
+                  <div className="flex items-center justify-between text-sm bg-muted/50 rounded-lg p-3">
+                    <span className="text-muted-foreground">Consultation Fee</span>
+                    <span className="font-bold text-lg text-primary">৳{selectedDoctor.appointmentFee}</span>
+                  </div>
                   <Button
-                    className="w-full"
+                    className="w-full gap-2"
                     size="lg"
                     disabled={submitting}
                     onClick={handleBooking}
                   >
-                    {submitting ? 'Booking…' : 'Confirm Booking'}
+                    {submitting ? (
+                      <><Loader2 className="h-4 w-4 animate-spin" />Processing...</>
+                    ) : (
+                      <><CreditCard className="h-4 w-4" />Book & Pay — ৳{selectedDoctor.appointmentFee}</>
+                    )}
                   </Button>
+                  <p className="text-xs text-center text-muted-foreground">
+                    You'll be redirected to Stripe's secure checkout
+                  </p>
                 </div>
               )}
             </CardContent>

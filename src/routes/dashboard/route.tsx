@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 import { AppShell } from '@/components/layout/AppShell'
 import { useAuth } from '@/hooks/useAuth'
 import { Skeleton } from '@/components/ui/skeleton'
+import { AiChatWidget } from '@/components/ai/AiChatWidget'
 
 export const Route = createFileRoute('/dashboard')({
     component: DashboardLayout,
@@ -42,6 +43,7 @@ function DashboardLayout() {
             onLogout={logout}
         >
             <Outlet />
+            <AiChatWidget context="dashboard" />
         </AppShell>
     )
 }

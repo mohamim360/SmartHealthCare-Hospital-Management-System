@@ -11,6 +11,7 @@ import {
     Settings,
     Heart,
     Home,
+    CreditCard,
     type LucideIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -29,6 +30,7 @@ const adminNavItems: SidebarItem[] = [
     { title: 'Admins', href: '/dashboard/admin/admins-management', icon: UserCheck },
     { title: 'Appointments', href: '/dashboard/admin/appointments-management', icon: Calendar },
     { title: 'Schedules', href: '/dashboard/admin/schedules-management', icon: ClipboardList },
+    { title: 'Payments', href: '/dashboard/admin/payments', icon: CreditCard },
 ]
 
 
@@ -43,6 +45,7 @@ const patientNavItems: SidebarItem[] = [
     { title: 'Dashboard', href: '/dashboard/patient', icon: LayoutDashboard },
     { title: 'Book Appointment', href: '/dashboard/patient/book-appointment', icon: Calendar },
     { title: 'My Appointments', href: '/dashboard/patient/my-appointments', icon: ClipboardList },
+    { title: 'Payment History', href: '/dashboard/patient/payment-history', icon: CreditCard },
     { title: 'My Prescriptions', href: '/dashboard/patient/my-prescriptions', icon: FileText },
     { title: 'Health Records', href: '/dashboard/patient/health-records', icon: Heart },
     { title: 'Reviews', href: '/dashboard/patient/reviews', icon: Star },
