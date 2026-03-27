@@ -14,8 +14,10 @@ export async function apiFetch<T = unknown>(
 ): Promise<ApiResponse<T>> {
     const token = typeof window !== 'undefined' ? sessionStorage.getItem('accessToken') : null
 
+    const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
+
     const headers: Record<string, string> = {
-        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...(!isFormData && options.body ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers as Record<string, string> || {}),
     }
@@ -42,6 +44,9 @@ export const api = {
 
     post: <T = unknown>(url: string, body: unknown) =>
         apiFetch<T>(url, { method: 'POST', body: JSON.stringify(body) }),
+
+    postForm: <T = unknown>(url: string, body: FormData) =>
+        apiFetch<T>(url, { method: 'POST', body }),
 
     patch: <T = unknown>(url: string, body: unknown) =>
         apiFetch<T>(url, { method: 'PATCH', body: JSON.stringify(body) }),

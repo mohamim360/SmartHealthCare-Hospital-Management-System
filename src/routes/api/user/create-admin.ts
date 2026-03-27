@@ -3,6 +3,7 @@ import { sendError, sendSuccess } from '@/lib/utils/response'
 import { createAdmin } from '@/lib/user/user.service'
 import { createAdminJsonSchema, createAdminMultipartSchema } from '@/lib/user/user.validation'
 import { requireAuth } from '@/lib/auth/auth.middleware'
+import { fileUploader } from '@/lib/utils/cloudinary'
 
 function isPrismaUniqueConstraintError(err: unknown): boolean {
     return (
@@ -33,6 +34,7 @@ export const Route = createFileRoute('/api/user/create-admin')({
                 if (contentType.includes('multipart/form-data')) {
                     const formData = await request.formData()
                     const dataField = formData.get('data')
+                    const file = formData.get('profilePhoto') as File | null
 
                     if (typeof dataField !== 'string') {
                         return sendError({
@@ -65,6 +67,16 @@ export const Route = createFileRoute('/api/user/create-admin')({
                         email: parsed.data.admin.email,
                         password: parsed.data.password,
                         contactNumber: parsed.data.admin.contactNumber,
+                        profilePhoto: undefined as string | undefined,
+                    }
+
+                    if (file) {
+                        try {
+                            const uploadResult = await fileUploader.uploadToCloudinary(file)
+                            input.profilePhoto = uploadResult?.secure_url
+                        } catch (err) {
+                            console.error('Failed to upload profile photo for admin:', err)
+                        }
                     }
 
                     try {

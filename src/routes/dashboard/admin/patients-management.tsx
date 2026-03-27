@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/table'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useDebounce } from '@/hooks'
 import { api, buildQuery } from '@/lib/api'
 import { DeleteConfirmationDialog } from '@/components/shared/DeleteConfirmationDialog'
@@ -19,6 +20,9 @@ export const Route = createFileRoute('/dashboard/admin/patients-management')({
 })
 
 function PatientsManagementPage() {
+  const getFirstWordInitial = (name?: string) =>
+    name?.trim()?.split(' ')[0]?.charAt(0)?.toUpperCase() || 'P'
+
   const [patients, setPatients] = useState<any[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -96,7 +100,19 @@ function PatientsManagementPage() {
                 ) : (
                   patients.map((p: any) => (
                     <TableRow key={p.id}>
-                      <TableCell className="font-medium">{p.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-8 w-8">
+                            {p.profilePhoto ? (
+                              <AvatarImage src={p.profilePhoto} alt={p.name || 'Patient'} />
+                            ) : null}
+                            <AvatarFallback className="text-xs bg-emerald-100 text-emerald-700">
+                              {getFirstWordInitial(p.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{p.name}</span>
+                        </div>
+                      </TableCell>
                       <TableCell>{p.email}</TableCell>
                       <TableCell>{p.address || '—'}</TableCell>
                       <TableCell>{new Date(p.createdAt).toLocaleDateString()}</TableCell>

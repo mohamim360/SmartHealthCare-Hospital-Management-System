@@ -12,6 +12,7 @@ import {
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog'
@@ -26,6 +27,9 @@ export const Route = createFileRoute('/dashboard/admin/admins-management')({
 const emptyAdmin = { name: '', email: '', password: '', contactNumber: '' }
 
 function AdminsManagementPage() {
+  const getFirstWordInitial = (name?: string) =>
+    name?.trim()?.split(' ')[0]?.charAt(0)?.toUpperCase() || 'A'
+
   const [admins, setAdmins] = useState<any[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -34,6 +38,7 @@ function AdminsManagementPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState(emptyAdmin)
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
   const debouncedSearch = useDebounce(search, 400)
@@ -63,10 +68,27 @@ function AdminsManagementPage() {
   const handleCreate = async () => {
     setCreating(true)
     setCreateError(null)
-    const res = await api.post('/api/user/create-admin', form)
+    const payload = new FormData()
+    payload.append(
+      'data',
+      JSON.stringify({
+        password: form.password,
+        admin: {
+          name: form.name,
+          email: form.email,
+          contactNumber: form.contactNumber,
+        },
+      }),
+    )
+    if (profilePhoto) {
+      payload.append('profilePhoto', profilePhoto)
+    }
+
+    const res = await api.postForm('/api/user/create-admin', payload)
     if (res.success) {
       setShowCreate(false)
       setForm(emptyAdmin)
+      setProfilePhoto(null)
       fetchAdmins()
     } else {
       setCreateError(res.message || 'Failed to create admin')
@@ -134,7 +156,15 @@ function AdminsManagementPage() {
                     <TableRow key={a.id}>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          {a.name}
+                          <Avatar className="h-8 w-8">
+                            {a.profilePhoto ? (
+                              <AvatarImage src={a.profilePhoto} alt={a.name || 'Admin'} />
+                            ) : null}
+                            <AvatarFallback className="text-xs bg-emerald-100 text-emerald-700">
+                              {getFirstWordInitial(a.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{a.name}</span>
                           {a.email === 'super_admin@shc.com' && (
                             <Badge variant="default" className="text-[10px]">Super Admin</Badge>
                           )}
@@ -200,6 +230,14 @@ function AdminsManagementPage() {
             <div className="space-y-2">
               <Label>Contact Number *</Label>
               <Input value={form.contactNumber} onChange={e => updateField('contactNumber', e.target.value)} placeholder="+880..." />
+            </div>
+            <div className="space-y-2">
+              <Label>Profile Photo (optional)</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={e => setProfilePhoto(e.target.files?.[0] ?? null)}
+              />
             </div>
           </div>
 

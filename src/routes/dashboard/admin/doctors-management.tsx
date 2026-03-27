@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/table'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
     Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog'
@@ -33,6 +33,9 @@ const emptyDoctor = {
 }
 
 function DoctorsManagementPage() {
+    const getFirstWordInitial = (name?: string) =>
+        name?.trim()?.split(' ')[0]?.charAt(0)?.toUpperCase() || 'D'
+
     const [doctors, setDoctors] = useState<any[]>([])
     const [total, setTotal] = useState(0)
     const [page, setPage] = useState(1)
@@ -41,6 +44,7 @@ function DoctorsManagementPage() {
     const [deleteId, setDeleteId] = useState<string | null>(null)
     const [showCreate, setShowCreate] = useState(false)
     const [form, setForm] = useState(emptyDoctor)
+    const [profilePhoto, setProfilePhoto] = useState<File | null>(null)
     const [creating, setCreating] = useState(false)
     const [createError, setCreateError] = useState<string | null>(null)
     const debouncedSearch = useDebounce(search, 400)
@@ -70,10 +74,36 @@ function DoctorsManagementPage() {
     const handleCreate = async () => {
         setCreating(true)
         setCreateError(null)
-        const res = await api.post('/api/user/create-doctor', form)
+
+        const payload = new FormData()
+        payload.append(
+            'data',
+            JSON.stringify({
+                password: form.password,
+                doctor: {
+                    name: form.name,
+                    email: form.email,
+                    contactNumber: form.contactNumber,
+                    address: form.address,
+                    registrationNumber: form.registrationNumber,
+                    experience: form.experience,
+                    gender: form.gender,
+                    appointmentFee: form.appointmentFee,
+                    qualification: form.qualification,
+                    currentWorkingPlace: form.currentWorkingPlace,
+                    designation: form.designation,
+                },
+            }),
+        )
+        if (profilePhoto) {
+            payload.append('profilePhoto', profilePhoto)
+        }
+
+        const res = await api.postForm('/api/user/create-doctor', payload)
         if (res.success) {
             setShowCreate(false)
             setForm(emptyDoctor)
+            setProfilePhoto(null)
             fetchDoctors()
         } else {
             setCreateError(res.message || 'Failed to create doctor')
@@ -140,8 +170,11 @@ function DoctorsManagementPage() {
                                             <TableCell>
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-8 w-8">
-                                                        <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                                            {d.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                                                        {d.profilePhoto ? (
+                                                            <AvatarImage src={d.profilePhoto} alt={d.name || 'Doctor'} />
+                                                        ) : null}
+                                                        <AvatarFallback className="text-xs bg-emerald-100 text-emerald-700">
+                                                            {getFirstWordInitial(d.name)}
                                                         </AvatarFallback>
                                                     </Avatar>
                                                     <div>
@@ -251,6 +284,14 @@ function DoctorsManagementPage() {
                         <div className="col-span-2 space-y-2">
                             <Label>Current Working Place *</Label>
                             <Input value={form.currentWorkingPlace} onChange={e => updateField('currentWorkingPlace', e.target.value)} placeholder="Dhaka Medical College" />
+                        </div>
+                        <div className="col-span-2 space-y-2">
+                            <Label>Profile Photo (optional)</Label>
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={e => setProfilePhoto(e.target.files?.[0] ?? null)}
+                            />
                         </div>
                     </div>
 
