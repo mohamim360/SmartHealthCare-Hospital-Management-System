@@ -13,6 +13,9 @@ export const Route = createFileRoute('/dashboard/patient/book-appointment')({
 })
 
 function BookAppointmentPage() {
+  const getFirstWordInitial = (name?: string) =>
+    name?.trim()?.split(' ')[0]?.charAt(0)?.toUpperCase() || 'D'
+
   const [doctors, setDoctors] = useState<any[]>([])
   const [selectedDoctor, setSelectedDoctor] = useState<any>(null)
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null)
@@ -152,14 +155,16 @@ function BookAppointmentPage() {
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarImage src={d.profilePhoto || ''} alt={d.name || 'Doctor'} />
-                      <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
-                        {d.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                      {d.profilePhoto ? (
+                        <AvatarImage src={d.profilePhoto} alt={d.name || 'Doctor'} />
+                      ) : null}
+                      <AvatarFallback className="bg-emerald-100 text-emerald-700 font-bold text-sm">
+                        {getFirstWordInitial(d.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm truncate">{d.name}</p>
-                      <p className="text-xs text-primary">{d.designation}</p>
+                      <p className="text-xs text-primary">{d.designation || 'General Physician'}</p>
                       <p className="text-xs text-muted-foreground">{d.experience} yrs • ⭐ {d.averageRating?.toFixed(1) ?? '—'}</p>
                       <p className="text-sm font-bold text-primary mt-1">৳{d.appointmentFee}</p>
                     </div>
@@ -176,17 +181,21 @@ function BookAppointmentPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
                 <Avatar className="h-12 w-12">
-                  <AvatarImage
-                    src={selectedDoctor.profilePhoto || ''}
-                    alt={selectedDoctor.name || 'Doctor'}
-                  />
-                  <AvatarFallback className="bg-primary text-primary-foreground font-bold">
-                    {selectedDoctor.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                  {selectedDoctor.profilePhoto ? (
+                    <AvatarImage
+                      src={selectedDoctor.profilePhoto}
+                      alt={selectedDoctor.name || 'Doctor'}
+                    />
+                  ) : null}
+                  <AvatarFallback className="bg-emerald-100 text-emerald-700 font-bold">
+                    {getFirstWordInitial(selectedDoctor.name)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <p className="font-bold">{selectedDoctor.name}</p>
-                  <p className="text-sm text-muted-foreground">{selectedDoctor.designation} • ৳{selectedDoctor.appointmentFee}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedDoctor.designation || 'General Physician'} • ৳{selectedDoctor.appointmentFee}
+                  </p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setSelectedDoctor(null)}>
                   Change Doctor
