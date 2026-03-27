@@ -7,6 +7,7 @@ export interface AuthUser {
     email: string
     role: string
     name: string
+    profilePhoto?: string | null
 }
 
 interface AuthContextValue {

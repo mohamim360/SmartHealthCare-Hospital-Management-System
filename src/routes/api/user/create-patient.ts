@@ -5,6 +5,7 @@ import {
   createPatientJsonSchema,
   createPatientMultipartSchema,
 } from '@/lib/user/user.validation'
+import { fileUploader } from '@/lib/utils/cloudinary'
 
 function isPrismaUniqueConstraintError(err: unknown): boolean {
   return (
@@ -25,6 +26,7 @@ export const Route = createFileRoute('/api/user/create-patient')({
         if (contentType.includes('multipart/form-data')) {
           const formData = await request.formData()
           const dataField = formData.get('data')
+          const file = formData.get('profilePhoto') as File | null
 
           if (typeof dataField !== 'string') {
             return sendError({
@@ -53,11 +55,23 @@ export const Route = createFileRoute('/api/user/create-patient')({
             })
           }
 
+          let profilePhotoUrl: string | undefined
+          if (file) {
+            try {
+              const uploadResult = await fileUploader.uploadToCloudinary(file)
+              profilePhotoUrl = uploadResult?.secure_url
+            } catch (err) {
+              console.error('Failed to upload profile photo:', err)
+            }
+          }
+
           const input = {
             name: parsed.data.patient.name,
             email: parsed.data.patient.email,
             password: parsed.data.password,
+            contactNumber: parsed.data.patient.contactNumber,
             address: parsed.data.patient.address,
+            profilePhoto: profilePhotoUrl,
           }
 
           try {
@@ -103,7 +117,10 @@ export const Route = createFileRoute('/api/user/create-patient')({
         }
 
         try {
-          const result = await createPatient(parsed.data)
+          const result = await createPatient({
+            ...parsed.data,
+            contactNumber: parsed.data.contactNumber,
+          })
           return sendSuccess({
             statusCode: 201,
             message: 'Patient created successfully!',

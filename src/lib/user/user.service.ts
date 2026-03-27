@@ -16,6 +16,7 @@ export type CreateUserInput = {
 
 export type CreatePatientInput = CreateUserInput & {
   name: string
+  contactNumber?: string
   address?: string
 }
 
@@ -53,6 +54,7 @@ export async function createPatient(payload: CreatePatientInput) {
       data: {
         name: payload.name,
         email: payload.email,
+        contactNumber: payload.contactNumber,
         address: payload.address,
         profilePhoto: payload.profilePhoto,
       },

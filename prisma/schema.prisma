@@ -128,12 +128,13 @@ model Doctor {
 
 // Patient model
 model Patient {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  name         String
-  profilePhoto String?
-  address      String?
-  isDeleted    Boolean  @default(false)
+  id            String   @id @default(uuid())
+  email         String   @unique
+  name          String
+  profilePhoto  String?
+  contactNumber String?
+  address       String?
+  isDeleted     Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

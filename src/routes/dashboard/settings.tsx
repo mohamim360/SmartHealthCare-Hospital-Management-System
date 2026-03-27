@@ -5,7 +5,7 @@ import { LogOut, User, Mail, Shield } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -51,6 +51,9 @@ function SettingsPage() {
         <CardContent className="space-y-6">
           <div className="flex items-center gap-4">
             <Avatar className="h-16 w-16">
+              {user.profilePhoto && (
+                <AvatarImage src={user.profilePhoto} alt={user.name} />
+              )}
               <AvatarFallback className="text-lg bg-primary/10 text-primary font-bold">
                 {initials}
               </AvatarFallback>

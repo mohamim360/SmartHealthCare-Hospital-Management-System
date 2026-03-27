@@ -1,29 +1,22 @@
 
 import * as React from 'react'
-import { Heart, Loader2, CheckCircle } from 'lucide-react'
+import { Heart, Loader2, ArrowLeft, Camera, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FormField, FormRoot } from './form-field'
 import { useZodForm } from '@/hooks/useZodForm'
 import { registerPatientSchema, type TRegisterPatientForm } from '@/lib/validators'
 import { Link } from '@tanstack/react-router'
-import { cn } from '@/lib/utils'
-
-type Step = 'account' | 'profile' | 'confirm'
-const STEPS: Step[] = ['account', 'profile', 'confirm']
-const STEP_LABELS: Record<Step, string> = {
-    account: 'Account',
-    profile: 'Profile',
-    confirm: 'Confirm',
-}
 
 interface RegisterFormProps {
-    onSubmit: (data: TRegisterPatientForm) => Promise<void>
+    onSubmit: (data: TRegisterPatientForm, profilePhoto?: File) => Promise<void>
     isLoading?: boolean
+    error?: string | null
 }
 
-export function RegisterForm({ onSubmit, isLoading = false }: RegisterFormProps) {
-    const [step, setStep] = React.useState<Step>('account')
-    const stepIndex = STEPS.indexOf(step)
+export function RegisterForm({ onSubmit, isLoading = false, error }: RegisterFormProps) {
+    const [profilePhoto, setProfilePhoto] = React.useState<File | null>(null)
+    const [photoPreview, setPhotoPreview] = React.useState<string | null>(null)
+    const fileInputRef = React.useRef<HTMLInputElement>(null)
 
     const form = useZodForm<TRegisterPatientForm>({
         schema: registerPatientSchema,
@@ -35,125 +28,184 @@ export function RegisterForm({ onSubmit, isLoading = false }: RegisterFormProps)
             contactNumber: '',
             address: '',
         },
-        mode: 'onBlur',
     })
 
-    const handleSubmit = form.handleSubmit(onSubmit)
-
-    const nextStep = async () => {
-        const accountFields: Array<keyof TRegisterPatientForm> = ['name', 'email', 'password', 'confirmPassword']
-        const profileFields: Array<keyof TRegisterPatientForm> = ['contactNumber', 'address']
-
-        const fieldsToValidate = step === 'account' ? accountFields : profileFields
-        const valid = await form.trigger(fieldsToValidate)
-        if (valid && stepIndex < STEPS.length - 1) setStep(STEPS[stepIndex + 1])
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file) {
+            setProfilePhoto(file)
+            const reader = new FileReader()
+            reader.onloadend = () => setPhotoPreview(reader.result as string)
+            reader.readAsDataURL(file)
+        }
     }
 
-    return (
-        <div className="min-h-screen flex flex-col items-center justify-start bg-muted/20 py-12 px-4">
-            <div className="w-full max-w-lg">
-                {/* Brand */}
-                <div className="flex items-center gap-2 mb-8 justify-center">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                        <Heart className="h-5 w-5" />
-                    </div>
-                    <span className="text-xl font-bold">Smart Health Care</span>
-                </div>
+    const removePhoto = () => {
+        setProfilePhoto(null)
+        setPhotoPreview(null)
+        if (fileInputRef.current) fileInputRef.current.value = ''
+    }
 
-                {/* Step indicator */}
-                <div className="flex items-center justify-center gap-2 mb-8">
-                    {STEPS.map((s, i) => (
-                        <React.Fragment key={s}>
-                            <div className="flex flex-col items-center gap-1">
-                                <div
-                                    className={cn(
-                                        'flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium transition-colors',
-                                        i < stepIndex
-                                            ? 'bg-primary text-primary-foreground'
-                                            : i === stepIndex
-                                                ? 'bg-primary text-primary-foreground ring-4 ring-primary/20'
-                                                : 'bg-muted text-muted-foreground',
-                                    )}
-                                >
-                                    {i < stepIndex ? <CheckCircle className="h-4 w-4" /> : i + 1}
-                                </div>
-                                <span className="text-xs text-muted-foreground">{STEP_LABELS[s]}</span>
-                            </div>
-                            {i < STEPS.length - 1 && (
-                                <div
-                                    className={cn(
-                                        'flex-1 h-0.5 mt-[-14px] transition-colors max-w-12',
-                                        i < stepIndex ? 'bg-primary' : 'bg-border',
-                                    )}
-                                />
-                            )}
-                        </React.Fragment>
+    const handleSubmit = form.handleSubmit((data) => onSubmit(data, profilePhoto ?? undefined))
+
+    return (
+        <div className="min-h-screen flex">
+            {/* Left — Branding panel */}
+            <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-primary/80 flex-col items-center justify-center p-12 text-primary-foreground">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
+                        <Heart className="h-8 w-8" />
+                    </div>
+                    <span className="text-3xl font-bold">Smart Health Care</span>
+                </div>
+                <p className="text-xl text-center opacity-90 max-w-xs">
+                    Your trusted partner for modern, accessible healthcare management.
+                </p>
+                <div className="mt-12 grid grid-cols-2 gap-6 w-full max-w-sm">
+                    {[
+                        { label: 'Doctors', value: '500+' },
+                        { label: 'Patients', value: '50k+' },
+                        { label: 'Appointments', value: '1M+' },
+                        { label: 'Rating', value: '4.9★' },
+                    ].map((s) => (
+                        <div key={s.label} className="text-center bg-white/10 rounded-xl p-4">
+                            <p className="text-2xl font-bold">{s.value}</p>
+                            <p className="text-sm opacity-80">{s.label}</p>
+                        </div>
                     ))}
                 </div>
+            </div>
 
-                {/* Card */}
-                <div className="bg-card rounded-2xl border shadow-sm p-8 space-y-6">
+            {/* Right — Form panel */}
+            <div className="flex-1 flex flex-col items-center justify-center p-8 overflow-y-auto">
+                <div className="w-full max-w-sm space-y-6">
+                    {/* Back to Home */}
+                    <Link
+                        to="/"
+                        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                        <ArrowLeft className="h-3.5 w-3.5" />
+                        Back to Home
+                    </Link>
+
+                    {/* Mobile brand */}
+                    <div className="flex items-center gap-2 lg:hidden">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                            <Heart className="h-4 w-4" />
+                        </div>
+                        <span className="font-semibold">Smart Health Care</span>
+                    </div>
+
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">Create your account</h1>
-                        <p className="text-muted-foreground mt-1">
-                            {step === 'account' && 'Set up your login credentials.'}
-                            {step === 'profile' && 'Add your contact details.'}
-                            {step === 'confirm' && 'Review and submit your registration.'}
-                        </p>
+                        <p className="text-muted-foreground mt-1">Register as a patient to get started</p>
                     </div>
 
                     <FormRoot onSubmit={handleSubmit}>
-                        {step === 'account' && (
-                            <div className="space-y-4">
-                                <FormField form={form} name="name" label="Full Name" placeholder="Dr. Jane Smith" required />
-                                <FormField form={form} name="email" label="Email" type="email" placeholder="jane@example.com" required />
-                                <div className="grid grid-cols-2 gap-3">
-                                    <FormField form={form} name="password" label="Password" type="password" placeholder="••••••••" required />
-                                    <FormField form={form} name="confirmPassword" label="Confirm Password" type="password" placeholder="••••••••" required />
-                                </div>
-                            </div>
-                        )}
-                        {step === 'profile' && (
-                            <div className="space-y-4">
-                                <FormField form={form} name="contactNumber" label="Contact Number" placeholder="+880 1234-567890" required />
-                                <FormField form={form} name="address" label="Address" placeholder="123 Main St, Dhaka" />
+                        {error && (
+                            <div className="bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-lg">
+                                {error}
                             </div>
                         )}
 
-                        {step === 'confirm' && (
-                            <div className="rounded-lg border bg-muted/30 p-4 space-y-2 text-sm">
-                                <p><span className="font-medium">Name:</span> {form.getValues('name')}</p>
-                                <p><span className="font-medium">Email:</span> {form.getValues('email')}</p>
-                                <p><span className="font-medium">Phone:</span> {form.getValues('contactNumber')}</p>
-                                <p><span className="font-medium">Address:</span> {form.getValues('address') || 'Not provided'}</p>
-                            </div>
-                        )}
-
-                        <div className="flex gap-3 pt-2">
-                            {stepIndex > 0 && (
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    className="flex-1"
-                                    onClick={() => setStep(STEPS[stepIndex - 1])}
-                                >
-                                    Back
-                                </Button>
-                            )}
-                            {step !== 'confirm' ? (
-                                <Button type="button" className="flex-1" onClick={nextStep}>
-                                    Continue
-                                </Button>
-                            ) : (
-                                <Button type="submit" className="flex-1" disabled={isLoading}>
-                                    {isLoading ? (
-                                        <><Loader2 className="h-4 w-4 animate-spin" /> Creating Account…</>
+                        {/* Profile Photo Upload */}
+                        <div className="flex flex-col items-center gap-2">
+                            <div
+                                className="relative group cursor-pointer"
+                                onClick={() => fileInputRef.current?.click()}
+                            >
+                                <div className="h-20 w-20 rounded-full bg-muted border-2 border-dashed border-muted-foreground/30 flex items-center justify-center overflow-hidden transition-colors group-hover:border-primary/50">
+                                    {photoPreview ? (
+                                        <img
+                                            src={photoPreview}
+                                            alt="Profile preview"
+                                            className="h-full w-full object-cover"
+                                        />
                                     ) : (
-                                        'Create Account'
+                                        <Camera className="h-6 w-6 text-muted-foreground/50 group-hover:text-primary/70 transition-colors" />
                                     )}
-                                </Button>
-                            )}
+                                </div>
+                                {photoPreview && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            removePhoto()
+                                        }}
+                                        className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center text-xs hover:bg-destructive/90"
+                                    >
+                                        <X className="h-3 w-3" />
+                                    </button>
+                                )}
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Profile photo <span className="opacity-60">(optional)</span>
+                            </p>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={handleFileChange}
+                            />
                         </div>
+
+                        <FormField
+                            form={form}
+                            name="name"
+                            label="Full Name"
+                            placeholder="John Doe"
+                            required
+                        />
+                        <FormField
+                            form={form}
+                            name="email"
+                            label="Email"
+                            type="email"
+                            placeholder="you@example.com"
+                            required
+                        />
+                        <div className="grid grid-cols-2 gap-3">
+                            <FormField
+                                form={form}
+                                name="password"
+                                label="Password"
+                                type="password"
+                                placeholder="••••••••"
+                                required
+                            />
+                            <FormField
+                                form={form}
+                                name="confirmPassword"
+                                label="Confirm"
+                                type="password"
+                                placeholder="••••••••"
+                                required
+                            />
+                        </div>
+                        <FormField
+                            form={form}
+                            name="contactNumber"
+                            label="Contact Number"
+                            placeholder="+880 1234-567890"
+                        />
+                        <FormField
+                            form={form}
+                            name="address"
+                            label="Address"
+                            placeholder="123 Main St, Dhaka"
+                        />
+
+                        <Button type="submit" className="w-full" disabled={isLoading}>
+                            {isLoading ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Creating Account…
+                                </>
+                            ) : (
+                                'Create Account'
+                            )}
+                        </Button>
                     </FormRoot>
 
                     <p className="text-center text-sm text-muted-foreground">

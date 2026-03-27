@@ -4,6 +4,7 @@ export const createPatientJsonSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   password: z.string().min(1),
+  contactNumber: z.string().optional(),
   address: z.string().optional(),
 })
 
@@ -12,6 +13,7 @@ export const createPatientMultipartSchema = z.object({
   patient: z.object({
     name: z.string().min(1),
     email: z.string().email(),
+    contactNumber: z.string().optional(),
     address: z.string().optional(),
   }),
 })

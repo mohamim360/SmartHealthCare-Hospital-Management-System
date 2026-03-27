@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Calendar, Stethoscope, CheckCircle2, CreditCard, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
@@ -152,6 +152,7 @@ function BookAppointmentPage() {
                 <CardContent className="p-4">
                   <div className="flex items-start gap-3">
                     <Avatar className="h-12 w-12">
+                      <AvatarImage src={d.profilePhoto || ''} alt={d.name || 'Doctor'} />
                       <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
                         {d.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                       </AvatarFallback>
@@ -175,6 +176,10 @@ function BookAppointmentPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-4">
                 <Avatar className="h-12 w-12">
+                  <AvatarImage
+                    src={selectedDoctor.profilePhoto || ''}
+                    alt={selectedDoctor.name || 'Doctor'}
+                  />
                   <AvatarFallback className="bg-primary text-primary-foreground font-bold">
                     {selectedDoctor.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
                   </AvatarFallback>

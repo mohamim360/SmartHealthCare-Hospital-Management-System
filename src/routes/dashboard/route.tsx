@@ -40,6 +40,7 @@ function DashboardLayout() {
         <AppShell
             role={user.role}
             userName={user.name}
+            userAvatar={user.profilePhoto ?? undefined}
             onLogout={logout}
         >
             <Outlet />
