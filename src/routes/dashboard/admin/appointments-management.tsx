@@ -180,7 +180,7 @@ function AppointmentsManagementPage() {
                       <TableCell>{appt.doctor?.name ?? '—'}</TableCell>
                       <TableCell>
                         {appt.schedule?.startDateTime
-                          ? new Date(appt.schedule.startDateTime).toLocaleString()
+                          ? new Date(appt.schedule.startDateTime).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
                           : new Date(appt.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>{typeof appt.doctor?.appointmentFee === 'number' ? `$${appt.doctor.appointmentFee}` : '—'}</TableCell>

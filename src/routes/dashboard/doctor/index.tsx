@@ -81,7 +81,7 @@ function DoctorDashboard() {
                                             <p className="font-medium text-sm">{a.patient?.name ?? 'Unknown Patient'}</p>
                                             <p className="text-xs text-muted-foreground">
                                                 {a.schedule?.startDateTime
-                                                    ? new Date(a.schedule.startDateTime).toLocaleString()
+                                                    ? new Date(a.schedule.startDateTime).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
                                                     : new Date(a.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>

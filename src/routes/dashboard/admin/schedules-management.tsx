@@ -21,9 +21,39 @@ export const Route = createFileRoute('/dashboard/admin/schedules-management')({
   component: SchedulesManagementPage,
 })
 
-// Time options
-const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+// --- AM/PM time helpers ---
+const AM_PM_HOURS = Array.from({ length: 12 }, (_, i) => {
+  const display = i === 0 ? 12 : i
+  return { value12: i, label: String(display).padStart(2, '0') }
+})
 const MINUTES = ['00', '15', '30', '45']
+
+/** Convert 12h + period back to 24h two-digit string */
+function to24h(hour12: number, period: 'AM' | 'PM'): string {
+  let h = hour12
+  if (period === 'PM') h += 12
+  if (h === 24) h = 12 // 12 PM stays 12
+  if (period === 'AM' && hour12 === 0) h = 0 // 12 AM = 0
+  return String(h).padStart(2, '0')
+}
+
+/** Format a Date to locale string with AM/PM */
+function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
+/** Get today's date in YYYY-MM-DD for min attribute */
+function todayStr() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 function SchedulesManagementPage() {
   const [schedules, setSchedules] = useState<any[]>([])
@@ -33,12 +63,14 @@ function SchedulesManagementPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
 
-  // Form state
+  // Form state — stored as 12h internally
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [startHour, setStartHour] = useState('09')
+  const [startHour12, setStartHour12] = useState(9)   // 0-11
+  const [startPeriod, setStartPeriod] = useState<'AM' | 'PM'>('AM')
   const [startMinute, setStartMinute] = useState('00')
-  const [endHour, setEndHour] = useState('17')
+  const [endHour12, setEndHour12] = useState(5)        // 0-11
+  const [endPeriod, setEndPeriod] = useState<'AM' | 'PM'>('PM')
   const [endMinute, setEndMinute] = useState('00')
   const [doctorId, setDoctorId] = useState('')
   const [creating, setCreating] = useState(false)
@@ -47,6 +79,10 @@ function SchedulesManagementPage() {
   // Doctor list for dropdown
   const [doctors, setDoctors] = useState<any[]>([])
   const [loadingDoctors, setLoadingDoctors] = useState(false)
+
+  // Derived 24h values for payload & preview
+  const startHour24 = to24h(startHour12, startPeriod)
+  const endHour24 = to24h(endHour12, endPeriod)
 
   const fetchSchedules = useCallback(async () => {
     setLoading(true)
@@ -87,9 +123,11 @@ function SchedulesManagementPage() {
   const resetForm = () => {
     setStartDate('')
     setEndDate('')
-    setStartHour('09')
+    setStartHour12(9)
+    setStartPeriod('AM')
     setStartMinute('00')
-    setEndHour('17')
+    setEndHour12(5)
+    setEndPeriod('PM')
     setEndMinute('00')
     setDoctorId('')
     setCreateError(null)
@@ -101,14 +139,22 @@ function SchedulesManagementPage() {
       return
     }
 
+    // Validate end time > start time
+    const s24 = parseInt(startHour24) * 60 + parseInt(startMinute)
+    const e24 = parseInt(endHour24) * 60 + parseInt(endMinute)
+    if (e24 <= s24) {
+      setCreateError('End time must be after start time')
+      return
+    }
+
     setCreating(true)
     setCreateError(null)
 
     const payload: any = {
       startDate,
       endDate,
-      startTime: `${startHour}:${startMinute}`,
-      endTime: `${endHour}:${endMinute}`,
+      startTime: `${startHour24}:${startMinute}`,
+      endTime: `${endHour24}:${endMinute}`,
     }
     if (doctorId) {
       payload.doctorId = doctorId
@@ -119,8 +165,20 @@ function SchedulesManagementPage() {
       setShowCreate(false)
       resetForm()
       fetchSchedules()
-      const slotsCreated = (res.data as any[])?.length ?? 0
-      toast.success(`${slotsCreated} schedule slot(s) created${doctorId ? ' and assigned to doctor' : ''}`)
+      const result = res.data as any
+      const newSlots = result?.newSlots ?? 0
+      const linkedSlots = result?.linkedSlots ?? 0
+      const totalSlots = result?.totalSlots ?? (res.data as any[])?.length ?? 0
+      if (newSlots > 0 || linkedSlots > 0) {
+        let msg = ''
+        if (newSlots > 0) msg += `${newSlots} new slot(s) created`
+        if (linkedSlots > 0) msg += `${msg ? ', ' : ''}${linkedSlots} slot(s) linked to doctor`
+        toast.success(msg)
+      } else if (totalSlots > 0) {
+        toast.success(`${totalSlots} schedule slot(s) created${doctorId ? ' and assigned to doctor' : ''}`)
+      } else {
+        toast.info('All slots already exist — no new slots created')
+      }
     } else {
       setCreateError(res.message || 'Failed to create schedule')
       toast.error(res.message || 'Failed to create schedule')
@@ -129,6 +187,10 @@ function SchedulesManagementPage() {
   }
 
   const totalPages = Math.ceil(total / 10)
+
+  // Preview label for the helper text
+  const previewStart = `${AM_PM_HOURS[startHour12].label}:${startMinute} ${startPeriod}`
+  const previewEnd = `${AM_PM_HOURS[endHour12].label}:${endMinute} ${endPeriod}`
 
   return (
     <div className="space-y-6">
@@ -175,8 +237,8 @@ function SchedulesManagementPage() {
                 ) : (
                   schedules.map((s: any) => (
                     <TableRow key={s.id}>
-                      <TableCell>{new Date(s.startDateTime).toLocaleString()}</TableCell>
-                      <TableCell>{new Date(s.endDateTime).toLocaleString()}</TableCell>
+                      <TableCell>{formatDateTime(s.startDateTime)}</TableCell>
+                      <TableCell>{formatDateTime(s.endDateTime)}</TableCell>
                       <TableCell>{new Date(s.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => setDeleteId(s.id)}>
@@ -202,7 +264,7 @@ function SchedulesManagementPage() {
         </CardContent>
       </Card>
 
-      {/* Create Schedule Dialog — Redesigned */}
+      {/* Create Schedule Dialog */}
       <Dialog open={showCreate} onOpenChange={(open) => { setShowCreate(open); if (!open) resetForm() }}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -260,7 +322,14 @@ function SchedulesManagementPage() {
                   <input
                     type="date"
                     value={startDate}
-                    onChange={e => setStartDate(e.target.value)}
+                    onChange={e => {
+                      setStartDate(e.target.value)
+                      // Auto-set endDate if empty or before new startDate
+                      if (!endDate || e.target.value > endDate) {
+                        setEndDate(e.target.value)
+                      }
+                    }}
+                    min={todayStr()}
                     className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
@@ -270,71 +339,92 @@ function SchedulesManagementPage() {
                     type="date"
                     value={endDate}
                     onChange={e => setEndDate(e.target.value)}
-                    min={startDate}
+                    min={startDate || todayStr()}
                     className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   />
                 </div>
               </div>
+              <p className="text-xs text-muted-foreground">
+                💡 You can set both dates to the same day to create slots for a single day.
+              </p>
             </div>
 
-            {/* Time Window */}
+            {/* Time Window — AM/PM */}
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 Daily Time Window
               </Label>
               <div className="grid grid-cols-2 gap-3">
+                {/* Start Time */}
                 <div className="space-y-1">
                   <span className="text-xs text-muted-foreground">Start Time</span>
                   <div className="flex gap-1">
                     <select
-                      value={startHour}
-                      onChange={e => setStartHour(e.target.value)}
-                      className="flex h-10 flex-1 rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      value={startHour12}
+                      onChange={e => setStartHour12(Number(e.target.value))}
+                      className="flex h-10 w-[4.5rem] rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {HOURS.map(h => (
-                        <option key={h} value={h}>{h}</option>
+                      {AM_PM_HOURS.map(h => (
+                        <option key={h.value12} value={h.value12}>{h.label}</option>
                       ))}
                     </select>
                     <span className="flex items-center text-muted-foreground font-bold">:</span>
                     <select
                       value={startMinute}
                       onChange={e => setStartMinute(e.target.value)}
-                      className="flex h-10 flex-1 rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="flex h-10 w-[4rem] rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {MINUTES.map(m => (
                         <option key={m} value={m}>{m}</option>
                       ))}
                     </select>
+                    <select
+                      value={startPeriod}
+                      onChange={e => setStartPeriod(e.target.value as 'AM' | 'PM')}
+                      className="flex h-10 w-[4.5rem] rounded-lg border border-input bg-background px-2 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
                   </div>
                 </div>
+                {/* End Time */}
                 <div className="space-y-1">
                   <span className="text-xs text-muted-foreground">End Time</span>
                   <div className="flex gap-1">
                     <select
-                      value={endHour}
-                      onChange={e => setEndHour(e.target.value)}
-                      className="flex h-10 flex-1 rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      value={endHour12}
+                      onChange={e => setEndHour12(Number(e.target.value))}
+                      className="flex h-10 w-[4.5rem] rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {HOURS.map(h => (
-                        <option key={h} value={h}>{h}</option>
+                      {AM_PM_HOURS.map(h => (
+                        <option key={h.value12} value={h.value12}>{h.label}</option>
                       ))}
                     </select>
                     <span className="flex items-center text-muted-foreground font-bold">:</span>
                     <select
                       value={endMinute}
                       onChange={e => setEndMinute(e.target.value)}
-                      className="flex h-10 flex-1 rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="flex h-10 w-[4rem] rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {MINUTES.map(m => (
                         <option key={m} value={m}>{m}</option>
                       ))}
                     </select>
+                    <select
+                      value={endPeriod}
+                      onChange={e => setEndPeriod(e.target.value as 'AM' | 'PM')}
+                      className="flex h-10 w-[4.5rem] rounded-lg border border-input bg-background px-2 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <option value="AM">AM</option>
+                      <option value="PM">PM</option>
+                    </select>
                   </div>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Slots will be created every 30 minutes from {startHour}:{startMinute} to {endHour}:{endMinute} each day.
+                Slots will be created every 30 minutes from {previewStart} to {previewEnd} each day.
               </p>
             </div>
           </div>
