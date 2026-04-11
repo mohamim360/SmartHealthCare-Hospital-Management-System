@@ -144,7 +144,7 @@ export function useAiChat(role?: string) {
     } finally {
       setIsLoading(false)
     }
-  }, [messages, isLoading])
+  }, [messages, isLoading, role])
 
   const clearChat = useCallback(() => {
     setMessages([])

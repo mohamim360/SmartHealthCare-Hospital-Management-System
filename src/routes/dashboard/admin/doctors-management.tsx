@@ -153,6 +153,7 @@ function DoctorsManagementPage() {
             toast.success('Doctor updated successfully')
         } else {
             setEditError(res.message || 'Failed to update doctor')
+            toast.error(res.message || 'Failed to update doctor')
         }
         setEditing(false)
     }
@@ -405,14 +406,15 @@ function DoctorsManagementPage() {
                         </div>
                         <div className="space-y-2">
                             <Label>Gender</Label>
-                            <select
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                                value={editForm.gender || 'MALE'}
-                                onChange={e => updateEditField('gender', e.target.value)}
-                            >
-                                <option value="MALE">Male</option>
-                                <option value="FEMALE">Female</option>
-                            </select>
+                            <Select value={editForm.gender || 'MALE'} onValueChange={v => updateEditField('gender', v)}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select gender" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="MALE">Male</SelectItem>
+                                    <SelectItem value="FEMALE">Female</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 

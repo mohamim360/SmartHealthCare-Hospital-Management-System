@@ -318,12 +318,12 @@ function AdminsManagementPage() {
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Full Name</Label>
-              <Input value={editForm.name || ''} onChange={e => updateEditField('name', e.target.value)} />
+              <Label htmlFor="edit-admin-name">Full Name</Label>
+              <Input id="edit-admin-name" value={editForm.name || ''} onChange={e => updateEditField('name', e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Contact Number</Label>
-              <Input value={editForm.contactNumber || ''} onChange={e => updateEditField('contactNumber', e.target.value)} />
+              <Label htmlFor="edit-admin-contact">Contact Number</Label>
+              <Input id="edit-admin-contact" value={editForm.contactNumber || ''} onChange={e => updateEditField('contactNumber', e.target.value)} />
             </div>
           </div>
 

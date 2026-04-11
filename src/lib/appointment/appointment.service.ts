@@ -50,16 +50,17 @@ export async function createAppointment(user: UserPayload, payload: CreateAppoin
         throw new Error('This date has been cancelled by the doctor and is not available for booking')
       }
 
-      // Also re-verify the slot is still unbooked inside the transaction
-      const freshSlot = await tnx.doctorSchedules.findFirst({
+      // Atomically claim the slot — only succeeds if still unbooked
+      const claimed = await tnx.doctorSchedules.updateMany({
         where: {
           doctorId: payload.doctorId,
           scheduleId: payload.scheduleId,
           isBooked: false,
         },
+        data: { isBooked: true },
       })
 
-      if (!freshSlot) {
+      if (claimed.count !== 1) {
         throw new Error('This time slot has already been booked')
       }
 
@@ -70,16 +71,6 @@ export async function createAppointment(user: UserPayload, payload: CreateAppoin
           scheduleId: payload.scheduleId,
           videoCallingId,
         },
-      })
-
-      await tnx.doctorSchedules.update({
-        where: {
-          doctorId_scheduleId: {
-            doctorId: doctorSchedule.doctorId,
-            scheduleId: payload.scheduleId,
-          },
-        },
-        data: { isBooked: true },
       })
 
       await tnx.payment.create({
@@ -140,6 +131,29 @@ export async function changeAppointmentStatus(
   }
   // ADMIN / SUPER_ADMIN can change any appointment
 
+  // When cancelling, also release the booked slot
+  if (newStatus === 'CANCEL') {
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.appointment.update({
+        where: { id: appointmentId },
+        data: { status: newStatus as AppointmentStatus },
+        include: {
+          patient: { select: { id: true, name: true, email: true } },
+          doctor: { select: { id: true, name: true, email: true, designation: true } },
+          schedule: { select: { startDateTime: true, endDateTime: true } },
+        },
+      })
+      await tx.doctorSchedules.updateMany({
+        where: {
+          doctorId: appointment.doctorId,
+          scheduleId: appointment.scheduleId,
+        },
+        data: { isBooked: false },
+      })
+      return updated
+    })
+  }
+
   return prisma.appointment.update({
     where: { id: appointmentId },
     data: { status: newStatus as AppointmentStatus },
@@ -173,6 +187,15 @@ export async function markPaymentPaid(user: UserPayload, appointmentId: string) 
   }
   if (appointment.payment.status === PaymentStatus.PAID) {
     throw new Error('Payment already completed')
+  }
+
+  // Block payment for cancelled appointments
+  const currentAppt = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    select: { status: true },
+  })
+  if (currentAppt?.status === AppointmentStatus.CANCEL) {
+    throw new Error('Cannot pay for a cancelled appointment')
   }
 
   return prisma.$transaction(async (tnx) => {
