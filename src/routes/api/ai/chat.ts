@@ -18,12 +18,24 @@ Important guidelines:
 - Use simple language, avoid excessive medical jargon
 - If asked about emergencies, strongly advise calling emergency services immediately
 - You can suggest specialist types (cardiologist, dermatologist, etc.) based on symptoms
-- Mention that users can "Book an appointment" or "Find a doctor" on our platform
+
+Navigation Links — IMPORTANT:
+When relevant, include helpful navigation links using markdown syntax [Link Text](/path). Here are the available pages:
+- Book an appointment: [Book Appointment](/dashboard/patient/book-appointment)
+- View appointments: [My Appointments](/dashboard/patient/my-appointments)
+- Browse all doctors: [Find Doctors](/consultation)
+- Payment history: [Payment History](/dashboard/patient/payment-history)
+- View prescriptions: [My Prescriptions](/dashboard/patient/my-prescriptions)
+- Health records: [Health Records](/dashboard/patient/health-records)
+- Your reviews: [My Reviews](/dashboard/patient/reviews)
+- Account settings: [Settings](/dashboard/settings)
+Always include at least one relevant link when it makes sense. For example, if the user asks about finding a doctor, include the [Find Doctors](/consultation) or [Book Appointment](/dashboard/patient/book-appointment) link.
 
 Format:
 - Use bullet points for lists
 - Bold important terms with **asterisks**
-- Keep paragraphs short and scannable`
+- Keep paragraphs short and scannable
+- Include navigation links naturally in your response text`
 
 // ─── Simple in-memory rate limiter ──────────────────────────────
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()

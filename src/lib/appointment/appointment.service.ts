@@ -22,7 +22,27 @@ export async function createAppointment(user: UserPayload, payload: CreateAppoin
       scheduleId: payload.scheduleId,
       isBooked: false,
     },
+    include: {
+      schedule: { select: { startDateTime: true } },
+    },
   })
+
+  // Check if this date is cancelled via doctor's weekly availability
+  const slotDate = new Date(doctorSchedule.schedule.startDateTime)
+  const startOfSlotDay = new Date(slotDate.getFullYear(), slotDate.getMonth(), slotDate.getDate())
+  const endOfSlotDay = new Date(startOfSlotDay)
+  endOfSlotDay.setDate(endOfSlotDay.getDate() + 1)
+
+  const cancellation = await prisma.doctorDayCancellation.findFirst({
+    where: {
+      doctorId: payload.doctorId,
+      date: { gte: startOfSlotDay, lt: endOfSlotDay },
+    },
+  })
+
+  if (cancellation) {
+    throw new Error('This date has been cancelled by the doctor and is not available for booking')
+  }
 
   const videoCallingId = crypto.randomUUID()
   const transactionId = crypto.randomUUID()

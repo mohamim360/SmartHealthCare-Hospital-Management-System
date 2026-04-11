@@ -52,18 +52,6 @@ export function TopNavbar({
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-                {/* Notifications placeholder */}
-                <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="Notifications"
-                    className="relative"
-                >
-                    <Bell className="h-4 w-4" />
-                    <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground">
-                        3
-                    </span>
-                </Button>
 
                 {/* Theme toggle — uses useTheme() internally */}
                 <ThemeToggle />

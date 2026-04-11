@@ -109,7 +109,7 @@ function PaymentHistoryPage() {
                       <TableCell className="text-sm">
                         {new Date(p.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                       </TableCell>
-                      <TableCell className="font-semibold">৳{p.amount}</TableCell>
+                      <TableCell className="font-semibold">${p.amount}</TableCell>
                       <TableCell>
                         {p.status === 'PAID' ? (
                           <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border-0 gap-1">
@@ -130,15 +130,14 @@ function PaymentHistoryPage() {
                         {p.status === 'UNPAID' && p.appointment?.status !== 'CANCEL' && (
                           <Button
                             size="sm"
-                            variant="outline"
                             disabled={payingId === p.appointment?.id}
                             onClick={() => handlePayNow(p.appointment?.id)}
-                            className="gap-1"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm gap-1.5 font-medium"
                           >
                             {payingId === p.appointment?.id ? (
-                              <><Loader2 className="h-3 w-3 animate-spin" />Paying…</>
+                              <><Loader2 className="h-3.5 w-3.5 animate-spin" />Processing…</>
                             ) : (
-                              <><CreditCard className="h-3 w-3" />Pay</>
+                              <><CreditCard className="h-3.5 w-3.5" />Pay Now</>
                             )}
                           </Button>
                         )}

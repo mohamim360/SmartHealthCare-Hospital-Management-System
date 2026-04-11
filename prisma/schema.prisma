@@ -118,10 +118,12 @@ model Doctor {
   updatedAt           DateTime @updatedAt
 
   user User @relation(fields: [email], references: [email])
-  doctorSchedules DoctorSchedules[]
-  appointments    Appointment[]
-  prescriptions   Prescription[]
-  reviews         Review[]
+  doctorSchedules    DoctorSchedules[]
+  appointments       Appointment[]
+  prescriptions      Prescription[]
+  reviews            Review[]
+  weeklyAvailability DoctorWeeklyAvailability[]
+  dayCancellations   DoctorDayCancellation[]
 
   @@map("doctors")
 }
@@ -221,4 +223,33 @@ model Todo {
   id        Int      @id @default(autoincrement())
   title     String
   createdAt DateTime @default(now())
+}
+
+// Weekly availability template for a doctor
+model DoctorWeeklyAvailability {
+  id        String   @id @default(uuid())
+  doctorId  String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+  dayOfWeek Int      // 0=Sunday, 1=Monday ... 6=Saturday
+  startTime String   // "11:00"
+  endTime   String   // "15:00"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([doctorId, dayOfWeek])
+  @@map("doctor_weekly_availability")
+}
+
+// Cancelled specific dates from the weekly pattern
+model DoctorDayCancellation {
+  id        String   @id @default(uuid())
+  doctorId  String
+  doctor    Doctor   @relation(fields: [doctorId], references: [id])
+  date      DateTime // The specific date cancelled (date-only)
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@unique([doctorId, date])
+  @@map("doctor_day_cancellations")
 }

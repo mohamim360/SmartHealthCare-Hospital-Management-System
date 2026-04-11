@@ -4,14 +4,29 @@ import { Button } from '@/components/ui/button'
 import { useAiChat, type ChatMessage } from '@/hooks/useAiChat'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import { Link } from '@tanstack/react-router'
 
-// ── Simple markdown-like rendering ──────────────────────────────
+// ── Simple markdown-like rendering with link support ──────────────────────────────
 function renderMessageText(text: string) {
-  // Bold: **text**
-  const parts = text.split(/(\*\*[^*]+\*\*)/g)
+  // Match **bold**, [link text](/path), and plain text
+  const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g)
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={i}>{part.slice(2, -2)}</strong>
+    }
+    // Markdown link: [text](/path)
+    const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
+    if (linkMatch) {
+      const [, linkText, linkHref] = linkMatch
+      return (
+        <Link
+          key={i}
+          to={linkHref}
+          className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium underline underline-offset-2 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+        >
+          {linkText} →
+        </Link>
+      )
     }
     return <span key={i}>{part}</span>
   })
@@ -124,15 +139,15 @@ export function AiChatWidget({ context = 'landing' }: AiChatWidgetProps) {
               onClick={() => setIsOpen(true)}
               className={cn(
                 'group relative h-14 w-14 rounded-full shadow-xl flex items-center justify-center',
-                'bg-primary text-primary-foreground',
-                'hover:bg-primary/90 hover:shadow-2xl hover:scale-105',
+                'bg-emerald-600 text-white',
+                'hover:bg-emerald-700 hover:shadow-2xl hover:scale-105',
                 'transition-all duration-300 ease-out',
               )}
               aria-label="Open AI Health Assistant"
             >
               <Sparkles className="h-6 w-6" />
               {/* Pulse ring */}
-              <span className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+              <span className="absolute inset-0 rounded-full bg-emerald-500/20 animate-ping" />
               {/* Tooltip */}
               <span className="absolute bottom-full mb-3 right-0 px-3 py-1.5 rounded-lg bg-card text-card-foreground text-xs font-medium shadow-lg border opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                 AI Health Assistant
@@ -159,14 +174,14 @@ export function AiChatWidget({ context = 'landing' }: AiChatWidgetProps) {
             )}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b bg-primary text-primary-foreground">
+            <div className="flex items-center justify-between px-4 py-3 border-b bg-emerald-600 text-white">
               <div className="flex items-center gap-2.5">
                 <div className="h-8 w-8 rounded-full bg-background/15 flex items-center justify-center">
                   <Bot className="h-4 w-4" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm">HealthAI Assistant</h3>
-                  <p className="text-xs text-primary-foreground/70">Powered by Z.AI</p>
+                  <p className="text-xs text-white/70">Powered by Z.AI</p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -193,8 +208,8 @@ export function AiChatWidget({ context = 'landing' }: AiChatWidgetProps) {
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
               {messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center space-y-5 py-8">
-                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-violet-500/10 to-indigo-500/10 flex items-center justify-center ">
-                    <Sparkles className="h-8 w-8 text-violet-500" />
+                  <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500/10 to-green-500/10 flex items-center justify-center ">
+                    <Sparkles className="h-8 w-8 text-emerald-500" />
                   </div>
                   <div className="space-y-1.5">
                     <h4 className="font-semibold">Hello! I'm HealthAI 👋</h4>
@@ -254,7 +269,7 @@ export function AiChatWidget({ context = 'landing' }: AiChatWidgetProps) {
                   disabled={!input.trim() || isLoading}
                   className={cn(
                     'h-10 w-10 rounded-xl shrink-0',
-                    'bg-primary text-primary-foreground hover:bg-primary/90',
+                    'bg-emerald-600 text-white hover:bg-emerald-700',
                     'disabled:opacity-40',
                   )}
                 >

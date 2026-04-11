@@ -110,9 +110,10 @@ export async function getDoctors(filters: DoctorListFilters, options: Pagination
 
 /**
  * Get doctor with full details: reviews (recent 10) + review stats + schedules
+ * Filters out slots on cancelled dates from weekly availability
  */
 export async function getDoctorByIdWithDetails(id: string) {
-  const [doctor, reviews, reviewStats] = await Promise.all([
+  const [doctor, reviews, reviewStats, cancellations] = await Promise.all([
     prisma.doctor.findFirstOrThrow({
       where: { id, isDeleted: false },
       include: {
@@ -125,7 +126,7 @@ export async function getDoctorByIdWithDetails(id: string) {
             schedule: { select: { id: true, startDateTime: true, endDateTime: true } },
           },
           orderBy: { schedule: { startDateTime: 'asc' } },
-          take: 20,
+          take: 40,
         },
       },
     }),
@@ -146,10 +147,33 @@ export async function getDoctorByIdWithDetails(id: string) {
       _avg: { rating: true },
       _count: { rating: true },
     }),
+    prisma.doctorDayCancellation.findMany({
+      where: {
+        doctorId: id,
+        date: { gte: new Date() },
+      },
+      select: { date: true },
+    }),
   ])
+
+  // Build a set of cancelled date strings (YYYY-MM-DD) for quick lookup
+  const cancelledDates = new Set(
+    cancellations.map(c => {
+      const d = new Date(c.date)
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    })
+  )
+
+  // Filter out doctor schedules that fall on cancelled dates
+  const filteredSchedules = doctor.doctorSchedules.filter(ds => {
+    const slotDate = new Date(ds.schedule.startDateTime)
+    const dateStr = `${slotDate.getFullYear()}-${String(slotDate.getMonth() + 1).padStart(2, '0')}-${String(slotDate.getDate()).padStart(2, '0')}`
+    return !cancelledDates.has(dateStr)
+  }).slice(0, 20)
 
   return {
     ...doctor,
+    doctorSchedules: filteredSchedules,
     reviews,
     reviewStats: {
       averageRating: reviewStats._avg.rating
@@ -182,6 +206,14 @@ export async function getSimilarDoctors(doctorId: string, designation: string) {
     },
     orderBy: { averageRating: 'desc' },
     take: 3,
+  })
+}
+
+export async function updateDoctorById(id: string, payload: Prisma.DoctorUpdateInput) {
+  await prisma.doctor.findFirstOrThrow({ where: { id, isDeleted: false } })
+  return prisma.doctor.update({
+    where: { id },
+    data: payload,
   })
 }
 

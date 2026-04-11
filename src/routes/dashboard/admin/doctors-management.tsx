@@ -1,8 +1,10 @@
 
 
+
 import { useState, useEffect, useCallback } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { Search, Trash2, Eye, Plus, Loader2 } from 'lucide-react'
+import { Search, Trash2, Eye, Plus, Loader2, Pencil } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -49,6 +51,12 @@ function DoctorsManagementPage() {
     const [createError, setCreateError] = useState<string | null>(null)
     const debouncedSearch = useDebounce(search, 400)
 
+    // Edit state
+    const [editDoctor, setEditDoctor] = useState<any>(null)
+    const [editForm, setEditForm] = useState<Record<string, any>>({})
+    const [editing, setEditing] = useState(false)
+    const [editError, setEditError] = useState<string | null>(null)
+
     const fetchDoctors = useCallback(async () => {
         setLoading(true)
         const qs = buildQuery({ page, limit: 10, searchTerm: debouncedSearch || undefined })
@@ -68,6 +76,9 @@ function DoctorsManagementPage() {
         if (res.success) {
             setDeleteId(null)
             fetchDoctors()
+            toast.success('Doctor deleted successfully')
+        } else {
+            toast.error('Failed to delete doctor')
         }
     }
 
@@ -105,13 +116,49 @@ function DoctorsManagementPage() {
             setForm(emptyDoctor)
             setProfilePhoto(null)
             fetchDoctors()
+            toast.success('Doctor created successfully')
         } else {
             setCreateError(res.message || 'Failed to create doctor')
+            toast.error(res.message || 'Failed to create doctor')
         }
         setCreating(false)
     }
 
+    const openEditDialog = (doctor: any) => {
+        setEditDoctor(doctor)
+        setEditForm({
+            name: doctor.name || '',
+            contactNumber: doctor.contactNumber || '',
+            address: doctor.address || '',
+            qualification: doctor.qualification || '',
+            designation: doctor.designation || '',
+            experience: doctor.experience || 0,
+            appointmentFee: doctor.appointmentFee || 0,
+            currentWorkingPlace: doctor.currentWorkingPlace || '',
+            registrationNumber: doctor.registrationNumber || '',
+            gender: doctor.gender || 'MALE',
+        })
+        setEditError(null)
+    }
+
+    const handleEdit = async () => {
+        if (!editDoctor) return
+        setEditing(true)
+        setEditError(null)
+
+        const res = await api.patch(`/api/doctor/${editDoctor.id}`, editForm)
+        if (res.success) {
+            setEditDoctor(null)
+            fetchDoctors()
+            toast.success('Doctor updated successfully')
+        } else {
+            setEditError(res.message || 'Failed to update doctor')
+        }
+        setEditing(false)
+    }
+
     const updateField = (field: string, value: any) => setForm(prev => ({ ...prev, [field]: value }))
+    const updateEditField = (field: string, value: any) => setEditForm(prev => ({ ...prev, [field]: value }))
 
     const totalPages = Math.ceil(total / 10)
 
@@ -185,10 +232,13 @@ function DoctorsManagementPage() {
                                             </TableCell>
                                             <TableCell>{d.designation}</TableCell>
                                             <TableCell>{d.experience} yrs</TableCell>
-                                            <TableCell>৳{d.appointmentFee}</TableCell>
+                                            <TableCell>${d.appointmentFee}</TableCell>
                                             <TableCell>⭐ {d.averageRating?.toFixed(1) ?? '—'}</TableCell>
                                             <TableCell className="text-right">
                                                 <div className="flex gap-1 justify-end">
+                                                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(d)}>
+                                                        <Pencil className="h-4 w-4" />
+                                                    </Button>
                                                     <Button variant="ghost" size="icon" asChild>
                                                         <Link to="/doctor/$id" params={{ id: d.id }}>
                                                             <Eye className="h-4 w-4" />
@@ -270,7 +320,7 @@ function DoctorsManagementPage() {
                             </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label>Appointment Fee (৳) *</Label>
+                            <Label>Appointment Fee ($) *</Label>
                             <Input type="number" value={form.appointmentFee} onChange={e => updateField('appointmentFee', parseInt(e.target.value) || 0)} />
                         </div>
                         <div className="space-y-2">
@@ -299,6 +349,77 @@ function DoctorsManagementPage() {
                         <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
                         <Button onClick={handleCreate} disabled={creating}>
                             {creating ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Creating…</> : 'Create Doctor'}
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Doctor Dialog */}
+            <Dialog open={!!editDoctor} onOpenChange={(open) => { if (!open) setEditDoctor(null) }}>
+                <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Edit Doctor</DialogTitle>
+                        <DialogDescription>Update the doctor's information.</DialogDescription>
+                    </DialogHeader>
+
+                    {editError && (
+                        <div className="bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-lg">{editError}</div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>Full Name</Label>
+                            <Input value={editForm.name || ''} onChange={e => updateEditField('name', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Contact Number</Label>
+                            <Input value={editForm.contactNumber || ''} onChange={e => updateEditField('contactNumber', e.target.value)} />
+                        </div>
+                        <div className="col-span-2 space-y-2">
+                            <Label>Address</Label>
+                            <Input value={editForm.address || ''} onChange={e => updateEditField('address', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Registration Number</Label>
+                            <Input value={editForm.registrationNumber || ''} onChange={e => updateEditField('registrationNumber', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Experience (years)</Label>
+                            <Input type="number" value={editForm.experience ?? 0} onChange={e => updateEditField('experience', parseInt(e.target.value) || 0)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Appointment Fee ($)</Label>
+                            <Input type="number" value={editForm.appointmentFee ?? 0} onChange={e => updateEditField('appointmentFee', parseInt(e.target.value) || 0)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Qualification</Label>
+                            <Input value={editForm.qualification || ''} onChange={e => updateEditField('qualification', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Designation</Label>
+                            <Input value={editForm.designation || ''} onChange={e => updateEditField('designation', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Current Working Place</Label>
+                            <Input value={editForm.currentWorkingPlace || ''} onChange={e => updateEditField('currentWorkingPlace', e.target.value)} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Gender</Label>
+                            <select
+                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                value={editForm.gender || 'MALE'}
+                                onChange={e => updateEditField('gender', e.target.value)}
+                            >
+                                <option value="MALE">Male</option>
+                                <option value="FEMALE">Female</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4 border-t">
+                        <Button variant="outline" onClick={() => setEditDoctor(null)}>Cancel</Button>
+                        <Button onClick={handleEdit} disabled={editing}>
+                            {editing ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Saving…</> : 'Save Changes'}
                         </Button>
                     </div>
                 </DialogContent>

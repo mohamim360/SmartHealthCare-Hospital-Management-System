@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { MotionStaggerList, staggerItem } from '@/components/ui/motion'
 import { motion } from 'framer-motion'
+import { Link } from '@tanstack/react-router'
 import type { LandingPageData } from '@/lib/landing/landing.service'
 
 interface FeaturedDoctorsProps {
@@ -53,9 +54,10 @@ export function FeaturedDoctors({ doctors, isLoading }: FeaturedDoctorsProps) {
                     <MotionStaggerList className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                         {doctors.map((doctor) => (
                             <motion.div key={doctor.id} variants={staggerItem}>
-                                <Card className="h-full transition-all hover:shadow-lg hover:-translate-y-1">
+                                <Link to={`/doctor/${doctor.id}`} className="block h-full">
+                                <Card className="h-full transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer group">
                                     <CardContent className="pt-6 flex flex-col items-center text-center space-y-3">
-                                        <Avatar className="h-20 w-20 border-2 border-primary/20">
+                                        <Avatar className="h-20 w-20 border-2 border-primary/20 group-hover:border-primary/40 transition-colors">
                                             {doctor.profilePhoto ? (
                                                 <AvatarImage src={doctor.profilePhoto} alt={doctor.name} />
                                             ) : null}
@@ -69,7 +71,7 @@ export function FeaturedDoctors({ doctors, isLoading }: FeaturedDoctorsProps) {
                                         </Avatar>
 
                                         <div>
-                                            <h3 className="font-semibold text-base">{doctor.name}</h3>
+                                            <h3 className="font-semibold text-base group-hover:text-primary transition-colors">{doctor.name}</h3>
                                             <p className="text-sm text-primary font-medium">{doctor.designation}</p>
                                         </div>
 
@@ -86,11 +88,12 @@ export function FeaturedDoctors({ doctors, isLoading }: FeaturedDoctorsProps) {
                                                 {doctor.experience}+ yrs
                                             </div>
                                             <div className="text-primary font-medium">
-                                                ৳{doctor.appointmentFee}
+                                                ${doctor.appointmentFee}
                                             </div>
                                         </div>
                                     </CardContent>
                                 </Card>
+                                </Link>
                             </motion.div>
                         ))}
                     </MotionStaggerList>

@@ -82,7 +82,7 @@ function AdminPaymentsPage() {
           <StatCard
             icon={TrendingUp}
             label="Total Revenue"
-            value={`৳${stats.totalRevenue?.toLocaleString() ?? 0}`}
+            value={`$${stats.totalRevenue?.toLocaleString() ?? 0}`}
             color="bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
           />
           <StatCard
@@ -168,7 +168,7 @@ function AdminPaymentsPage() {
                             })
                           : '—'}
                       </TableCell>
-                      <TableCell className="font-semibold">৳{p.amount}</TableCell>
+                      <TableCell className="font-semibold">${p.amount}</TableCell>
                       <TableCell>
                         {p.status === 'PAID' ? (
                           <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 border-0 gap-1">

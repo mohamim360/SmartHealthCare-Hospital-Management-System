@@ -45,8 +45,8 @@ export async function createCheckoutSession(appointmentId: string, userEmail: st
     line_items: [
       {
         price_data: {
-          currency: 'bdt',
-          unit_amount: amount * 100, // Stripe expects smallest currency unit (paisa)
+          currency: 'usd',
+          unit_amount: amount * 100, // Stripe expects smallest currency unit (cents)
           product_data: {
             name: `Consultation — Dr. ${appointment.doctor.name}`,
             description: `${appointment.doctor.designation} • ${new Date(appointment.schedule.startDateTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,

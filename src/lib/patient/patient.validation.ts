@@ -11,6 +11,7 @@ export const patientListQuerySchema = z.object({
 
 export const patientUpdateSchema = z.object({
   name: z.string().min(1).optional(),
+  contactNumber: z.string().min(1).optional(),
   address: z.string().optional(),
   profilePhoto: z.string().url().optional(),
 })
