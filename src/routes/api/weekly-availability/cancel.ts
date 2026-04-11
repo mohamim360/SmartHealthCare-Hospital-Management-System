@@ -3,7 +3,14 @@ import { requireAuth } from '@/lib/auth/auth.middleware'
 import { sendError, sendSuccess } from '@/lib/utils/response'
 import { prisma } from '@/db'
 import { cancelDay, uncancelDay } from '@/lib/weekly-availability/weekly-availability.service'
-import { cancelDaySchema } from '@/lib/weekly-availability/weekly-availability.validation'
+import { z } from 'zod'
+
+const cancelActionSchema = z.object({
+  date: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/, 'Date must be in YYYY-MM-DD format'),
+  action: z.enum(['cancel', 'restore']).default('cancel'),
+  reason: z.string().optional(),
+  doctorId: z.string().optional(),
+})
 
 export const Route = createFileRoute('/api/weekly-availability/cancel')({
   server: {
@@ -25,12 +32,17 @@ export const Route = createFileRoute('/api/weekly-availability/cancel')({
           return sendError({ statusCode: 400, message: 'Invalid JSON body' })
         }
 
-        const action = body?.action || 'cancel'
-        const date = body?.date
-
-        if (!date) {
-          return sendError({ statusCode: 400, message: 'date is required' })
+        // Validate request body
+        const parsed = cancelActionSchema.safeParse(body)
+        if (!parsed.success) {
+          return sendError({
+            statusCode: 400,
+            message: 'Validation failed',
+            error: parsed.error.flatten(),
+          })
         }
+
+        const { action, date, reason } = parsed.data
 
         try {
           let doctorId: string | undefined
@@ -45,30 +57,28 @@ export const Route = createFileRoute('/api/weekly-availability/cancel')({
             }
             doctorId = doctor.id
           } else {
-            doctorId = body.doctorId
+            doctorId = parsed.data.doctorId
             if (!doctorId) {
               return sendError({ statusCode: 400, message: 'doctorId required for admin' })
             }
           }
 
           if (action === 'restore') {
-            try {
-              await uncancelDay(doctorId, date)
-              return sendSuccess({
-                statusCode: 200,
-                message: 'Day restored successfully',
-                data: { date, action: 'restored' },
-              })
-            } catch (err) {
-              // If the cancellation doesn't exist, that's fine
+            const deletedCount = await uncancelDay(doctorId, date)
+            if (deletedCount === 0) {
               return sendSuccess({
                 statusCode: 200,
                 message: 'Day was already active',
                 data: { date, action: 'already_active' },
               })
             }
+            return sendSuccess({
+              statusCode: 200,
+              message: 'Day restored successfully',
+              data: { date, action: 'restored' },
+            })
           } else {
-            const result = await cancelDay(doctorId, date, body.reason)
+            const result = await cancelDay(doctorId, date, reason)
             const apptCount = (result as any).cancelledAppointments || 0
             const msg = apptCount > 0
               ? `Day cancelled. ${apptCount} existing appointment(s) were also cancelled.`

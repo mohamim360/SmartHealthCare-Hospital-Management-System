@@ -25,7 +25,14 @@ export const Route = createFileRoute('/api/weekly-availability/generate')({
         }
 
         const parsed = generateSlotsSchema.safeParse(body)
-        const weeksAhead = parsed.success ? parsed.data.weeksAhead : 4
+        if (!parsed.success) {
+          return sendError({
+            statusCode: 400,
+            message: 'Validation failed',
+            error: parsed.error.flatten(),
+          })
+        }
+        const weeksAhead = parsed.data.weeksAhead
 
         try {
           let doctorId: string | undefined
@@ -43,6 +50,14 @@ export const Route = createFileRoute('/api/weekly-availability/generate')({
             doctorId = body?.doctorId
             if (!doctorId) {
               return sendError({ statusCode: 400, message: 'doctorId required for admin' })
+            }
+            // Verify doctor exists
+            const doctorExists = await prisma.doctor.findUnique({
+              where: { id: doctorId },
+              select: { id: true },
+            })
+            if (!doctorExists) {
+              return sendError({ statusCode: 400, message: 'Doctor not found with provided doctorId' })
             }
           }
 

@@ -215,7 +215,14 @@ function AdminsManagementPage() {
                       <TableCell>{new Date(a.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(a)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={a.email === 'super_admin@shc.com'}
+                            onClick={() => openEditDialog(a)}
+                            aria-label={`Edit ${a.email}`}
+                            title={`Edit ${a.email}`}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
                           <Button
@@ -223,6 +230,8 @@ function AdminsManagementPage() {
                             size="icon"
                             disabled={a.email === 'super_admin@shc.com'}
                             onClick={() => setDeleteId(a.id)}
+                            aria-label={`Delete ${a.email}`}
+                            title={`Delete ${a.email}`}
                           >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>

@@ -161,8 +161,9 @@ function HomePage() {
                           <p className="text-sm font-medium">Appointment Booked</p>
                           <p className="text-xs text-muted-foreground">
                             {nextAppointment.doctor?.name ?? 'Doctor'} •{' '}
-                            {new Date(nextAppointment.schedule?.startDateTime).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}{' '}
-                            {new Date(nextAppointment.schedule?.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {nextAppointment.schedule?.startDateTime
+                              ? `${new Date(nextAppointment.schedule.startDateTime).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} ${new Date(nextAppointment.schedule.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                              : 'Date TBD'}
                           </p>
                         </div>
                       </div>

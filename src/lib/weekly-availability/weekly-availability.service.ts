@@ -13,43 +13,43 @@ export type DaySlot = {
  * Each slot is unique per [doctorId, dayOfWeek].
  */
 export async function setWeeklyAvailability(doctorId: string, slots: DaySlot[]) {
-  // Delete existing entries for days not in the new set
   const activeDays = slots.map(s => s.dayOfWeek)
 
-  await prisma.doctorWeeklyAvailability.deleteMany({
-    where: {
-      doctorId,
-      dayOfWeek: { notIn: activeDays },
-    },
-  })
-
-  // Upsert each slot
-  const results = []
-  for (const slot of slots) {
-    const result = await prisma.doctorWeeklyAvailability.upsert({
+  return prisma.$transaction(async (tx) => {
+    await tx.doctorWeeklyAvailability.deleteMany({
       where: {
-        doctorId_dayOfWeek: {
-          doctorId,
-          dayOfWeek: slot.dayOfWeek,
-        },
-      },
-      update: {
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        isActive: slot.isActive,
-      },
-      create: {
         doctorId,
-        dayOfWeek: slot.dayOfWeek,
-        startTime: slot.startTime,
-        endTime: slot.endTime,
-        isActive: slot.isActive,
+        dayOfWeek: { notIn: activeDays },
       },
     })
-    results.push(result)
-  }
 
-  return results
+    const results = []
+    for (const slot of slots) {
+      const result = await tx.doctorWeeklyAvailability.upsert({
+        where: {
+          doctorId_dayOfWeek: {
+            doctorId,
+            dayOfWeek: slot.dayOfWeek,
+          },
+        },
+        update: {
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          isActive: slot.isActive,
+        },
+        create: {
+          doctorId,
+          dayOfWeek: slot.dayOfWeek,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          isActive: slot.isActive,
+        },
+      })
+      results.push(result)
+    }
+
+    return results
+  })
 }
 
 /**
@@ -70,57 +70,58 @@ export async function cancelDay(doctorId: string, date: string, reason?: string)
   const dateObj = startOfDay(new Date(date))
   const nextDay = addDays(dateObj, 1)
 
-  // 1. Record the cancellation
-  const cancellation = await prisma.doctorDayCancellation.upsert({
-    where: {
-      doctorId_date: {
+  return prisma.$transaction(async (tx) => {
+    // 1. Record the cancellation
+    const cancellation = await tx.doctorDayCancellation.upsert({
+      where: {
+        doctorId_date: {
+          doctorId,
+          date: dateObj,
+        },
+      },
+      update: { reason },
+      create: {
         doctorId,
         date: dateObj,
+        reason,
       },
-    },
-    update: { reason },
-    create: {
-      doctorId,
-      date: dateObj,
-      reason,
-    },
-  })
-
-  // 2. Find all SCHEDULED appointments for this doctor on this date
-  const appointmentsToCancel = await prisma.appointment.findMany({
-    where: {
-      doctorId,
-      status: 'SCHEDULED',
-      schedule: {
-        startDateTime: { gte: dateObj, lt: nextDay },
-      },
-    },
-    select: { id: true, scheduleId: true },
-  })
-
-  // 3. Cancel those appointments and free up the schedule slots
-  if (appointmentsToCancel.length > 0) {
-    await prisma.appointment.updateMany({
-      where: {
-        id: { in: appointmentsToCancel.map(a => a.id) },
-      },
-      data: { status: 'CANCEL' },
     })
 
-    // Free up the doctor schedule slots so they don't stay "booked"
-    await prisma.doctorSchedules.updateMany({
+    // 2. Find all SCHEDULED appointments for this doctor on this date
+    const appointmentsToCancel = await tx.appointment.findMany({
       where: {
         doctorId,
-        scheduleId: { in: appointmentsToCancel.map(a => a.scheduleId) },
+        status: 'SCHEDULED',
+        schedule: {
+          startDateTime: { gte: dateObj, lt: nextDay },
+        },
       },
-      data: { isBooked: false },
+      select: { id: true, scheduleId: true },
     })
-  }
 
-  return {
-    ...cancellation,
-    cancelledAppointments: appointmentsToCancel.length,
-  }
+    // 3. Cancel those appointments and free up the schedule slots
+    if (appointmentsToCancel.length > 0) {
+      await tx.appointment.updateMany({
+        where: {
+          id: { in: appointmentsToCancel.map(a => a.id) },
+        },
+        data: { status: 'CANCEL' },
+      })
+
+      await tx.doctorSchedules.updateMany({
+        where: {
+          doctorId,
+          scheduleId: { in: appointmentsToCancel.map(a => a.scheduleId) },
+        },
+        data: { isBooked: false },
+      })
+    }
+
+    return {
+      ...cancellation,
+      cancelledAppointments: appointmentsToCancel.length,
+    }
+  })
 }
 
 /**
@@ -129,14 +130,14 @@ export async function cancelDay(doctorId: string, date: string, reason?: string)
 export async function uncancelDay(doctorId: string, date: string) {
   const dateObj = startOfDay(new Date(date))
 
-  return prisma.doctorDayCancellation.delete({
+  const result = await prisma.doctorDayCancellation.deleteMany({
     where: {
-      doctorId_date: {
-        doctorId,
-        date: dateObj,
-      },
+      doctorId,
+      date: dateObj,
     },
   })
+
+  return result.count
 }
 
 /**

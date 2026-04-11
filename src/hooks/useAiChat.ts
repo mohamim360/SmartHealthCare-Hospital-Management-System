@@ -10,7 +10,7 @@ export interface ChatMessage {
 const MAX_MESSAGES_PER_SESSION = 20
 const COOLDOWN_MS = 3000 // 3 seconds between messages
 
-export function useAiChat() {
+export function useAiChat(role?: string) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -64,7 +64,7 @@ export function useAiChat() {
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages }),
+        body: JSON.stringify({ messages: apiMessages, role }),
       })
 
       if (response.status === 429) {

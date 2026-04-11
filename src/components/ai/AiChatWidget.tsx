@@ -2,11 +2,39 @@ import { useState, useRef, useEffect } from 'react'
 import { MessageCircle, X, Send, Trash2, Sparkles, Bot, User, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAiChat, type ChatMessage } from '@/hooks/useAiChat'
+import { useAuth } from '@/hooks/useAuth'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from '@tanstack/react-router'
 
-// ── Simple markdown-like rendering with link support ──────────────────────────────
+// Safe internal routes allowlist
+const ALLOWED_ROUTES = new Set([
+  '/consultation',
+  '/dashboard/settings',
+  '/dashboard/patient/book-appointment',
+  '/dashboard/patient/my-appointments',
+  '/dashboard/patient/payment-history',
+  '/dashboard/patient/my-prescriptions',
+  '/dashboard/patient/health-records',
+  '/dashboard/patient/reviews',
+  '/dashboard/doctor',
+  '/dashboard/doctor/appointments',
+  '/dashboard/doctor/my-schedules',
+  '/dashboard/doctor/prescriptions',
+  '/dashboard/admin',
+  '/dashboard/admin/doctors-management',
+  '/dashboard/admin/patients-management',
+  '/dashboard/admin/appointments-management',
+  '/dashboard/admin/schedules-management',
+])
+
+function isSafeInternalPath(href: string): boolean {
+  if (!href.startsWith('/') || href.startsWith('//')) return false
+  if (/[<>"'`]/.test(href)) return false
+  return ALLOWED_ROUTES.has(href)
+}
+
+// Markdown-like rendering with link support
 function renderMessageText(text: string) {
   // Match **bold**, [link text](/path), and plain text
   const parts = text.split(/(\*\*[^*]+\*\*|\[[^\]]+\]\([^)]+\))/g)
@@ -18,15 +46,19 @@ function renderMessageText(text: string) {
     const linkMatch = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/)
     if (linkMatch) {
       const [, linkText, linkHref] = linkMatch
-      return (
-        <Link
-          key={i}
-          to={linkHref}
-          className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium underline underline-offset-2 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
-        >
-          {linkText} →
-        </Link>
-      )
+      if (isSafeInternalPath(linkHref)) {
+        return (
+          <Link
+            key={i}
+            to={linkHref}
+            className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium underline underline-offset-2 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors"
+          >
+            {linkText} →
+          </Link>
+        )
+      }
+      // Unsafe or unknown path — render as plain text
+      return <span key={i}>{linkText}</span>
     }
     return <span key={i}>{part}</span>
   })
@@ -80,7 +112,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   )
 }
 
-// ── Suggestion chips ────────────────────────────────────────────
+// Suggestion chips
 const QUICK_PROMPTS = [
   '🤒 Check my symptoms',
   '💊 Medication info',
@@ -95,7 +127,8 @@ interface AiChatWidgetProps {
 export function AiChatWidget({ context = 'landing' }: AiChatWidgetProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput] = useState('')
-  const { messages, isLoading, error, sendMessage, clearChat, remainingMessages } = useAiChat()
+  const { user } = useAuth()
+  const { messages, isLoading, error, sendMessage, clearChat, remainingMessages } = useAiChat(user?.role)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 

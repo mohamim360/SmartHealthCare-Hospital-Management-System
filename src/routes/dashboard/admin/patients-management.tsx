@@ -164,10 +164,22 @@ function PatientsManagementPage() {
                       <TableCell>{new Date(p.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-1 justify-end">
-                          <Button variant="ghost" size="icon" onClick={() => openEditDialog(p)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditDialog(p)}
+                            aria-label={`Edit patient ${p.name || p.id}`}
+                            title={`Edit patient ${p.name || p.id}`}
+                          >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => setDeleteId(p.id)}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteId(p.id)}
+                            aria-label={`Delete patient ${p.name || p.id}`}
+                            title={`Delete patient ${p.name || p.id}`}
+                          >
                             <Trash2 className="h-4 w-4 text-destructive" />
                           </Button>
                         </div>

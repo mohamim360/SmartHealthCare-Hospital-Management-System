@@ -54,7 +54,7 @@ export function FeaturedDoctors({ doctors, isLoading }: FeaturedDoctorsProps) {
                     <MotionStaggerList className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                         {doctors.map((doctor) => (
                             <motion.div key={doctor.id} variants={staggerItem}>
-                                <Link to={`/doctor/${doctor.id}`} className="block h-full">
+                                <Link to={`/doctor/${doctor.id}`} className="block h-full outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl">
                                 <Card className="h-full transition-all hover:shadow-lg hover:-translate-y-1 cursor-pointer group">
                                     <CardContent className="pt-6 flex flex-col items-center text-center space-y-3">
                                         <Avatar className="h-20 w-20 border-2 border-primary/20 group-hover:border-primary/40 transition-colors">

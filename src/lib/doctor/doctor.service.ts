@@ -150,7 +150,7 @@ export async function getDoctorByIdWithDetails(id: string) {
     prisma.doctorDayCancellation.findMany({
       where: {
         doctorId: id,
-        date: { gte: new Date() },
+        date: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) },
       },
       select: { date: true },
     }),

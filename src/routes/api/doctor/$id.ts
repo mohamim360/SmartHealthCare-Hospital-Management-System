@@ -35,7 +35,7 @@ export const Route = createFileRoute('/api/doctor/$id')({
         }
       },
       PATCH: async ({ request, params }) => {
-        const user = requireAuth(request, 'ADMIN')
+        const user = requireAuth(request, 'ADMIN', 'SUPER_ADMIN')
         if (!user) return sendError({ statusCode: 401, message: 'Unauthorized or invalid role' })
 
         let body: unknown
@@ -54,12 +54,15 @@ export const Route = createFileRoute('/api/doctor/$id')({
           const data = await updateDoctorById(params.id, parsed.data)
           return sendSuccess({ statusCode: 200, message: 'Doctor updated successfully', data })
         } catch (err) {
+          if (isPrismaNotFoundError(err)) {
+            return sendError({ statusCode: 404, message: 'Doctor not found' })
+          }
           console.error('Failed to update doctor', err)
-          return sendError({ statusCode: 404, message: 'Doctor not found' })
+          return sendError({ statusCode: 500, message: 'Failed to update doctor' })
         }
       },
       DELETE: async ({ request, params }) => {
-        const user = requireAuth(request, 'ADMIN')
+        const user = requireAuth(request, 'ADMIN', 'SUPER_ADMIN')
         if (!user) return sendError({ statusCode: 401, message: 'Unauthorized or invalid role' })
 
         try {

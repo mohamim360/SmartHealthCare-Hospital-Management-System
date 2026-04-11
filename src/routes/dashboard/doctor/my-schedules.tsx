@@ -369,7 +369,7 @@ function WeeklyAvailabilityTab() {
 
   const handleCancelDay = async (dateStr: string) => {
     // Optimistic update — add to cancellations immediately
-    setCancellations(prev => [...prev, { date: dateStr + 'T00:00:00.000Z', doctorId: '' }])
+    setCancellations(prev => [...prev, { date: dateStr, doctorId: '' }])
 
     const res = await api.post('/api/weekly-availability/cancel', { date: dateStr, action: 'cancel' })
     if (res.success) {

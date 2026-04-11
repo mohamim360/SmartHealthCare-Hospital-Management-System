@@ -27,28 +27,42 @@ export async function createAppointment(user: UserPayload, payload: CreateAppoin
     },
   })
 
-  // Check if this date is cancelled via doctor's weekly availability
+  // Pre-compute the date range for cancellation check
   const slotDate = new Date(doctorSchedule.schedule.startDateTime)
   const startOfSlotDay = new Date(slotDate.getFullYear(), slotDate.getMonth(), slotDate.getDate())
   const endOfSlotDay = new Date(startOfSlotDay)
   endOfSlotDay.setDate(endOfSlotDay.getDate() + 1)
-
-  const cancellation = await prisma.doctorDayCancellation.findFirst({
-    where: {
-      doctorId: payload.doctorId,
-      date: { gte: startOfSlotDay, lt: endOfSlotDay },
-    },
-  })
-
-  if (cancellation) {
-    throw new Error('This date has been cancelled by the doctor and is not available for booking')
-  }
 
   const videoCallingId = crypto.randomUUID()
   const transactionId = crypto.randomUUID()
 
   const result = await prisma.$transaction(
     async (tnx) => {
+      // Check cancellation INSIDE the transaction to prevent race condition
+      const cancellation = await tnx.doctorDayCancellation.findFirst({
+        where: {
+          doctorId: payload.doctorId,
+          date: { gte: startOfSlotDay, lt: endOfSlotDay },
+        },
+      })
+
+      if (cancellation) {
+        throw new Error('This date has been cancelled by the doctor and is not available for booking')
+      }
+
+      // Also re-verify the slot is still unbooked inside the transaction
+      const freshSlot = await tnx.doctorSchedules.findFirst({
+        where: {
+          doctorId: payload.doctorId,
+          scheduleId: payload.scheduleId,
+          isBooked: false,
+        },
+      })
+
+      if (!freshSlot) {
+        throw new Error('This time slot has already been booked')
+      }
+
       const appointment = await tnx.appointment.create({
         data: {
           patientId: patient.id,
