@@ -21,7 +21,7 @@ export const Route = createFileRoute('/api/weekly-availability/generate')({
         try {
           body = await request.json()
         } catch {
-          // body is optional, defaults will be used
+          return sendError({ statusCode: 400, message: 'Malformed JSON request' })
         }
 
         const parsed = generateSlotsSchema.safeParse(body)
@@ -38,8 +38,8 @@ export const Route = createFileRoute('/api/weekly-availability/generate')({
           let doctorId: string | undefined
 
           if (user.role === 'DOCTOR') {
-            const doctor = await prisma.doctor.findUnique({
-              where: { email: user.email },
+            const doctor = await prisma.doctor.findFirst({
+              where: { email: user.email, isDeleted: false },
               select: { id: true },
             })
             if (!doctor) {
@@ -52,8 +52,8 @@ export const Route = createFileRoute('/api/weekly-availability/generate')({
               return sendError({ statusCode: 400, message: 'doctorId required for admin' })
             }
             // Verify doctor exists
-            const doctorExists = await prisma.doctor.findUnique({
-              where: { id: doctorId },
+            const doctorExists = await prisma.doctor.findFirst({
+              where: { id: doctorId, isDeleted: false },
               select: { id: true },
             })
             if (!doctorExists) {

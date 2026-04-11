@@ -49,11 +49,19 @@ export const Route = createFileRoute('/api/admin/$id')({
         }
 
         try {
+          // Prevent modifying super admin
+          const target = await getAdminById(params.id)
+          if (target.email === 'super_admin@shc.com') {
+            return sendError({ statusCode: 403, message: 'Cannot modify the super admin account' })
+          }
           const data = await updateAdminById(params.id, parsed.data)
           return sendSuccess({ statusCode: 200, message: 'Admin updated successfully', data })
         } catch (err) {
+          if (isPrismaNotFoundError(err)) {
+            return sendError({ statusCode: 404, message: 'Admin not found' })
+          }
           console.error('Failed to update admin', err)
-          return sendError({ statusCode: 404, message: 'Admin not found' })
+          return sendError({ statusCode: 500, message: 'Failed to update admin' })
         }
       },
       DELETE: async ({ request, params }) => {
@@ -61,6 +69,11 @@ export const Route = createFileRoute('/api/admin/$id')({
         if (!user) return sendError({ statusCode: 401, message: 'Unauthorized or invalid role' })
 
         try {
+          // Prevent deleting super admin
+          const target = await getAdminById(params.id)
+          if (target.email === 'super_admin@shc.com') {
+            return sendError({ statusCode: 403, message: 'Cannot delete the super admin account' })
+          }
           const data = await deleteAdminById(params.id)
           return sendSuccess({ statusCode: 200, message: 'Admin deleted successfully', data })
         } catch (err) {

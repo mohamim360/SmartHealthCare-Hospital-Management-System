@@ -1,5 +1,5 @@
 import { prisma } from '@/db'
-import { addMinutes, addHours, format, addDays, startOfDay } from 'date-fns'
+import { addMinutes, addHours, format, addDays, startOfDay, parse } from 'date-fns'
 
 export type DaySlot = {
   dayOfWeek: number
@@ -67,7 +67,7 @@ export async function getWeeklyAvailability(doctorId: string) {
  * Also auto-cancels any existing SCHEDULED appointments on that date.
  */
 export async function cancelDay(doctorId: string, date: string, reason?: string) {
-  const dateObj = startOfDay(new Date(date))
+  const dateObj = startOfDay(parse(date, 'yyyy-MM-dd', new Date()))
   const nextDay = addDays(dateObj, 1)
 
   return prisma.$transaction(async (tx) => {
@@ -128,7 +128,7 @@ export async function cancelDay(doctorId: string, date: string, reason?: string)
  * Remove a cancellation (uncancel a day).
  */
 export async function uncancelDay(doctorId: string, date: string) {
-  const dateObj = startOfDay(new Date(date))
+  const dateObj = startOfDay(parse(date, 'yyyy-MM-dd', new Date()))
 
   const result = await prisma.doctorDayCancellation.deleteMany({
     where: {
@@ -208,17 +208,20 @@ export async function generateSlotsForWeeks(doctorId: string, weeksAhead: number
       const [startH, startM] = dayAvail.startTime.split(':').map(Number)
       const [endH, endM] = dayAvail.endTime.split(':').map(Number)
 
+      const baseDate = parse(dateStr, 'yyyy-MM-dd', new Date())
+
       let slotStart = addMinutes(
-        addHours(new Date(dateStr), startH),
+        addHours(baseDate, startH),
         startM
       )
       const dayEnd = addMinutes(
-        addHours(new Date(dateStr), endH),
+        addHours(baseDate, endH),
         endM
       )
 
       while (slotStart < dayEnd) {
         const slotEnd = addMinutes(slotStart, intervalMinutes)
+        if (slotEnd > dayEnd) break
 
         // Check if schedule already exists
         const existing = await prisma.schedule.findFirst({
