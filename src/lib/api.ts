@@ -48,6 +48,9 @@ export const api = {
     postForm: <T = unknown>(url: string, body: FormData) =>
         apiFetch<T>(url, { method: 'POST', body }),
 
+    put: <T = unknown>(url: string, body: unknown) =>
+        apiFetch<T>(url, { method: 'PUT', body: JSON.stringify(body) }),
+
     patch: <T = unknown>(url: string, body: unknown) =>
         apiFetch<T>(url, { method: 'PATCH', body: JSON.stringify(body) }),
 

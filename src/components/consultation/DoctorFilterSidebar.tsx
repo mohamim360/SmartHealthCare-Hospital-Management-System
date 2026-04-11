@@ -192,7 +192,7 @@ export function DoctorFilterSidebar({
             </FilterSection>
 
             {/* Fee Range */}
-            <FilterSection title="Consultation Fee (৳)">
+            <FilterSection title="Consultation Fee ($)">
                 <div className="flex items-center gap-2">
                     <Input
                         type="number"

@@ -31,7 +31,7 @@ function AdminDashboard() {
             { title: 'Appointments', value: meta.appointmentCount ?? 0, icon: Calendar, description: 'All time' },
             { title: 'Prescriptions', value: meta.prescriptionCount ?? 0, icon: FileText, description: 'Total issued' },
             { title: 'Reviews', value: meta.reviewCount ?? 0, icon: Star, description: 'Patient feedback' },
-            { title: 'Revenue', value: `৳${meta.totalRevenue ?? 0}`, icon: Heart, description: 'All-time earnings' },
+            { title: 'Revenue', value: `$${meta.totalRevenue ?? 0}`, icon: Heart, description: 'All-time earnings' },
         ]
         : []
 

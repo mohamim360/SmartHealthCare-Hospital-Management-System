@@ -126,12 +126,17 @@ export function DashboardSidebar({ role = 'ADMIN', className, onNavigate }: Dash
             </nav>
 
             {/* Footer */}
-            <div className="border-t border-sidebar-border px-3 py-4 space-y-1">
+            <div className="border-t border-sidebar-border px-3 py-4 space-y-1.5">
                 <Button
                     variant="ghost"
                     size="default"
                     asChild
-                    className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent"
+                    className={cn(
+                        'w-full justify-start gap-3 font-medium transition-all duration-200',
+                        currentPath === '/dashboard/settings'
+                            ? 'bg-sidebar-primary text-sidebar-primary-foreground shadow-sm'
+                            : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                    )}
                 >
                     <Link to="/dashboard/settings" onClick={onNavigate}>
                         <Settings className="w-4 h-4 shrink-0" />
@@ -142,7 +147,7 @@ export function DashboardSidebar({ role = 'ADMIN', className, onNavigate }: Dash
                     variant="ghost"
                     size="default"
                     asChild
-                    className="w-full justify-start gap-3 text-sidebar-foreground hover:bg-sidebar-accent"
+                    className="w-full justify-start gap-3 font-medium text-primary hover:bg-primary/10 hover:text-primary transition-all duration-200"
                 >
                     <Link to="/" onClick={onNavigate}>
                         <Home className="w-4 h-4 shrink-0" />

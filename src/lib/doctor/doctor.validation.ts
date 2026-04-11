@@ -18,3 +18,17 @@ export const doctorListQuerySchema = z.object({
 })
 
 export type DoctorListQuery = z.infer<typeof doctorListQuerySchema>
+
+export const doctorUpdateSchema = z.object({
+  name: z.string().min(1).optional(),
+  contactNumber: z.string().min(1).optional(),
+  address: z.string().min(1).optional(),
+  qualification: z.string().min(1).optional(),
+  designation: z.string().min(1).optional(),
+  experience: z.coerce.number().min(0).optional(),
+  appointmentFee: z.coerce.number().min(0).optional(),
+  currentWorkingPlace: z.string().min(1).optional(),
+  registrationNumber: z.string().min(1).optional(),
+  gender: z.enum(['MALE', 'FEMALE']).optional(),
+  profilePhoto: z.string().url().optional(),
+})

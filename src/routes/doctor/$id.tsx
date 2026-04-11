@@ -218,7 +218,7 @@ function DoctorDetailPage() {
                                     <div className="rounded-2xl border bg-card/70 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-4 py-4 flex items-center justify-between gap-4 lg:flex-col lg:items-stretch lg:gap-3 lg:min-w-[220px]">
                                         <div className="text-left lg:text-center">
                                             <p className="text-xs text-muted-foreground font-medium">Consultation Fee</p>
-                                            <p className="text-2xl sm:text-3xl font-bold text-primary leading-tight">৳{doctor.appointmentFee}</p>
+                                            <p className="text-2xl sm:text-3xl font-bold text-primary leading-tight">${doctor.appointmentFee}</p>
                                         </div>
                                         <Button size="lg" className="shadow-md gap-2 whitespace-nowrap" asChild>
                                             <Link to="/dashboard/patient/book-appointment">
@@ -398,7 +398,7 @@ function DoctorDetailPage() {
                                         <Calendar className="h-8 w-8 mx-auto opacity-90" />
                                         <div>
                                             <p className="font-semibold text-sm">Book an Appointment</p>
-                                            <p className="text-xs opacity-80">Consultation fee: ৳{doctor.appointmentFee}</p>
+                                            <p className="text-xs opacity-80">Consultation fee: ${doctor.appointmentFee}</p>
                                         </div>
                                         <Button size="lg" variant="secondary" className="w-full font-semibold shadow-lg" asChild>
                                             <Link to="/dashboard/patient/book-appointment">

@@ -166,7 +166,7 @@ function BookAppointmentPage() {
                       <p className="font-bold text-sm truncate">{d.name}</p>
                       <p className="text-xs text-primary">{d.designation || 'General Physician'}</p>
                       <p className="text-xs text-muted-foreground">{d.experience} yrs • ⭐ {d.averageRating?.toFixed(1) ?? '—'}</p>
-                      <p className="text-sm font-bold text-primary mt-1">৳{d.appointmentFee}</p>
+                      <p className="text-sm font-bold text-primary mt-1">${d.appointmentFee}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -194,7 +194,7 @@ function BookAppointmentPage() {
                 <div className="flex-1">
                   <p className="font-bold">{selectedDoctor.name}</p>
                   <p className="text-sm text-muted-foreground">
-                    {selectedDoctor.designation || 'General Physician'} • ৳{selectedDoctor.appointmentFee}
+                    {selectedDoctor.designation || 'General Physician'} • ${selectedDoctor.appointmentFee}
                   </p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setSelectedDoctor(null)}>
@@ -249,22 +249,22 @@ function BookAppointmentPage() {
                 <div className="mt-6 pt-4 border-t space-y-3">
                   <div className="flex items-center justify-between text-sm bg-muted/50 rounded-lg p-3">
                     <span className="text-muted-foreground">Consultation Fee</span>
-                    <span className="font-bold text-lg text-primary">৳{selectedDoctor.appointmentFee}</span>
+                    <span className="font-bold text-lg text-primary">${selectedDoctor.appointmentFee}</span>
                   </div>
                   <Button
-                    className="w-full gap-2"
+                    className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold text-base"
                     size="lg"
                     disabled={submitting}
                     onClick={handleBooking}
                   >
                     {submitting ? (
-                      <><Loader2 className="h-4 w-4 animate-spin" />Processing...</>
+                      <><Loader2 className="h-5 w-5 animate-spin" />Processing...</>
                     ) : (
-                      <><CreditCard className="h-4 w-4" />Book & Pay — ৳{selectedDoctor.appointmentFee}</>
+                      <><CreditCard className="h-5 w-5" />Book & Pay — ${selectedDoctor.appointmentFee}</>
                     )}
                   </Button>
                   <p className="text-xs text-center text-muted-foreground">
-                    You'll be redirected to Stripe's secure checkout
+                    🔒 You'll be redirected to Stripe's secure checkout
                   </p>
                 </div>
               )}

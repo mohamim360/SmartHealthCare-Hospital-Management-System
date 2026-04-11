@@ -169,7 +169,7 @@ function PatientMyAppointmentsPage() {
                           ? new Date(a.schedule.startDateTime).toLocaleString()
                           : new Date(a.createdAt).toLocaleDateString()}
                       </TableCell>
-                      <TableCell>৳{a.doctor?.appointmentFee ?? '—'}</TableCell>
+                      <TableCell>${a.doctor?.appointmentFee ?? '—'}</TableCell>
                       <TableCell>
                         <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${STATUS_VARIANTS[a.status] ?? ''}`}>
                           {a.status}
@@ -197,14 +197,13 @@ function PatientMyAppointmentsPage() {
                           {/* Pay: only when UNPAID */}
                           {a.paymentStatus === 'UNPAID' && a.status !== 'CANCEL' && (
                             <Button
-                              variant="outline"
                               size="sm"
-                              className="text-green-600 border-green-300 hover:bg-green-50"
                               disabled={payingId === a.id}
                               onClick={() => handlePay(a.id)}
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm gap-1.5 font-medium"
                             >
-                              <CreditCard className="h-4 w-4 mr-1" />
-                              {payingId === a.id ? 'Paying…' : 'Pay Now'}
+                              <CreditCard className="h-3.5 w-3.5" />
+                              {payingId === a.id ? 'Processing…' : 'Pay Now'}
                             </Button>
                           )}
 

@@ -22,13 +22,48 @@ export async function createAppointment(user: UserPayload, payload: CreateAppoin
       scheduleId: payload.scheduleId,
       isBooked: false,
     },
+    include: {
+      schedule: { select: { startDateTime: true } },
+    },
   })
+
+  // Pre-compute the date range for cancellation check
+  const slotDate = new Date(doctorSchedule.schedule.startDateTime)
+  const startOfSlotDay = new Date(slotDate.getFullYear(), slotDate.getMonth(), slotDate.getDate())
+  const endOfSlotDay = new Date(startOfSlotDay)
+  endOfSlotDay.setDate(endOfSlotDay.getDate() + 1)
 
   const videoCallingId = crypto.randomUUID()
   const transactionId = crypto.randomUUID()
 
   const result = await prisma.$transaction(
     async (tnx) => {
+      // Check cancellation INSIDE the transaction to prevent race condition
+      const cancellation = await tnx.doctorDayCancellation.findFirst({
+        where: {
+          doctorId: payload.doctorId,
+          date: { gte: startOfSlotDay, lt: endOfSlotDay },
+        },
+      })
+
+      if (cancellation) {
+        throw new Error('This date has been cancelled by the doctor and is not available for booking')
+      }
+
+      // Atomically claim the slot — only succeeds if still unbooked
+      const claimed = await tnx.doctorSchedules.updateMany({
+        where: {
+          doctorId: payload.doctorId,
+          scheduleId: payload.scheduleId,
+          isBooked: false,
+        },
+        data: { isBooked: true },
+      })
+
+      if (claimed.count !== 1) {
+        throw new Error('This time slot has already been booked')
+      }
+
       const appointment = await tnx.appointment.create({
         data: {
           patientId: patient.id,
@@ -36,16 +71,6 @@ export async function createAppointment(user: UserPayload, payload: CreateAppoin
           scheduleId: payload.scheduleId,
           videoCallingId,
         },
-      })
-
-      await tnx.doctorSchedules.update({
-        where: {
-          doctorId_scheduleId: {
-            doctorId: doctorSchedule.doctorId,
-            scheduleId: payload.scheduleId,
-          },
-        },
-        data: { isBooked: true },
       })
 
       await tnx.payment.create({
@@ -106,6 +131,29 @@ export async function changeAppointmentStatus(
   }
   // ADMIN / SUPER_ADMIN can change any appointment
 
+  // When cancelling, also release the booked slot
+  if (newStatus === 'CANCEL') {
+    return prisma.$transaction(async (tx) => {
+      const updated = await tx.appointment.update({
+        where: { id: appointmentId },
+        data: { status: newStatus as AppointmentStatus },
+        include: {
+          patient: { select: { id: true, name: true, email: true } },
+          doctor: { select: { id: true, name: true, email: true, designation: true } },
+          schedule: { select: { startDateTime: true, endDateTime: true } },
+        },
+      })
+      await tx.doctorSchedules.updateMany({
+        where: {
+          doctorId: appointment.doctorId,
+          scheduleId: appointment.scheduleId,
+        },
+        data: { isBooked: false },
+      })
+      return updated
+    })
+  }
+
   return prisma.appointment.update({
     where: { id: appointmentId },
     data: { status: newStatus as AppointmentStatus },
@@ -139,6 +187,15 @@ export async function markPaymentPaid(user: UserPayload, appointmentId: string) 
   }
   if (appointment.payment.status === PaymentStatus.PAID) {
     throw new Error('Payment already completed')
+  }
+
+  // Block payment for cancelled appointments
+  const currentAppt = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    select: { status: true },
+  })
+  if (currentAppt?.status === AppointmentStatus.CANCEL) {
+    throw new Error('Cannot pay for a cancelled appointment')
   }
 
   return prisma.$transaction(async (tnx) => {

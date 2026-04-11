@@ -5,6 +5,7 @@ export const createScheduleSchema = z.object({
   endTime: z.string().regex(/^\d{1,2}:\d{2}$/, 'Invalid time (use HH:MM)'),
   startDate: z.string().min(1, 'Start date is required'),
   endDate: z.string().min(1, 'End date is required'),
+  doctorId: z.string().uuid().optional(),
 })
 
 export const schedulesForDoctorQuerySchema = z.object({

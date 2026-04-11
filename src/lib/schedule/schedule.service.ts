@@ -11,6 +11,7 @@ export type CreateScheduleInput = {
   endTime: string
   startDate: string
   endDate: string
+  doctorId?: string
 }
 
 export type ScheduleFilters = {
@@ -20,9 +21,10 @@ export type ScheduleFilters = {
 
 /**
  * Creates 30-minute time slots between startDate–endDate × startTime–endTime.
+ * If doctorId is provided, also links each slot to that doctor via DoctorSchedules.
  */
 export async function insertSchedulesIntoDB(payload: CreateScheduleInput) {
-  const { startTime, endTime, startDate, endDate } = payload
+  const { startTime, endTime, startDate, endDate, doctorId } = payload
   const intervalMinutes = 30
   const schedules: Array<{ id: string; startDateTime: Date; endDateTime: Date }> = []
 
@@ -49,6 +51,8 @@ export async function insertSchedulesIntoDB(payload: CreateScheduleInput) {
           endDateTime: slotEnd,
         },
       })
+
+      let scheduleId: string
       if (!existing) {
         const created = await prisma.schedule.create({
           data: {
@@ -56,8 +60,26 @@ export async function insertSchedulesIntoDB(payload: CreateScheduleInput) {
             endDateTime: slotEnd,
           },
         })
+        scheduleId = created.id
         schedules.push(created)
+      } else {
+        scheduleId = existing.id
       }
+
+      // Link to doctor if doctorId provided
+      if (doctorId) {
+        const existingLink = await prisma.doctorSchedules.findUnique({
+          where: {
+            doctorId_scheduleId: { doctorId, scheduleId },
+          },
+        })
+        if (!existingLink) {
+          await prisma.doctorSchedules.create({
+            data: { doctorId, scheduleId },
+          })
+        }
+      }
+
       slotStart = addMinutes(slotStart, intervalMinutes)
     }
     currentDate.setDate(currentDate.getDate() + 1)

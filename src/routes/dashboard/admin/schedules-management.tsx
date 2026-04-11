@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { Calendar, Trash2, Plus, Loader2 } from 'lucide-react'
+import { Calendar, Trash2, Plus, Loader2, Clock, CalendarDays, User2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -16,12 +15,15 @@ import {
 } from '@/components/ui/dialog'
 import { api, buildQuery } from '@/lib/api'
 import { DeleteConfirmationDialog } from '@/components/shared/DeleteConfirmationDialog'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/dashboard/admin/schedules-management')({
   component: SchedulesManagementPage,
 })
 
-const emptyForm = { startDate: '', endDate: '', startTime: '', endTime: '' }
+// Time options
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
+const MINUTES = ['00', '15', '30', '45']
 
 function SchedulesManagementPage() {
   const [schedules, setSchedules] = useState<any[]>([])
@@ -30,9 +32,21 @@ function SchedulesManagementPage() {
   const [loading, setLoading] = useState(true)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState(emptyForm)
+
+  // Form state
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [startHour, setStartHour] = useState('09')
+  const [startMinute, setStartMinute] = useState('00')
+  const [endHour, setEndHour] = useState('17')
+  const [endMinute, setEndMinute] = useState('00')
+  const [doctorId, setDoctorId] = useState('')
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
+
+  // Doctor list for dropdown
+  const [doctors, setDoctors] = useState<any[]>([])
+  const [loadingDoctors, setLoadingDoctors] = useState(false)
 
   const fetchSchedules = useCallback(async () => {
     setLoading(true)
@@ -47,31 +61,72 @@ function SchedulesManagementPage() {
 
   useEffect(() => { fetchSchedules() }, [fetchSchedules])
 
+  // Fetch doctors when dialog opens
+  useEffect(() => {
+    if (showCreate && doctors.length === 0) {
+      setLoadingDoctors(true)
+      api.get<any[]>('/api/doctor?limit=100').then((res) => {
+        if (res.success) setDoctors(res.data ?? [])
+        setLoadingDoctors(false)
+      })
+    }
+  }, [showCreate])
+
   const handleDelete = async () => {
     if (!deleteId) return
     const res = await api.delete(`/api/schedule/${deleteId}`)
     if (res.success) {
       setDeleteId(null)
       fetchSchedules()
+      toast.success('Schedule deleted')
+    } else {
+      toast.error('Failed to delete schedule')
     }
+  }
+
+  const resetForm = () => {
+    setStartDate('')
+    setEndDate('')
+    setStartHour('09')
+    setStartMinute('00')
+    setEndHour('17')
+    setEndMinute('00')
+    setDoctorId('')
+    setCreateError(null)
   }
 
   const handleCreate = async () => {
+    if (!startDate || !endDate) {
+      setCreateError('Please select both start and end dates')
+      return
+    }
+
     setCreating(true)
     setCreateError(null)
-    const res = await api.post('/api/schedule', form)
+
+    const payload: any = {
+      startDate,
+      endDate,
+      startTime: `${startHour}:${startMinute}`,
+      endTime: `${endHour}:${endMinute}`,
+    }
+    if (doctorId) {
+      payload.doctorId = doctorId
+    }
+
+    const res = await api.post('/api/schedule', payload)
     if (res.success) {
       setShowCreate(false)
-      setForm(emptyForm)
+      resetForm()
       fetchSchedules()
+      const slotsCreated = (res.data as any[])?.length ?? 0
+      toast.success(`${slotsCreated} schedule slot(s) created${doctorId ? ' and assigned to doctor' : ''}`)
     } else {
       setCreateError(res.message || 'Failed to create schedule')
+      toast.error(res.message || 'Failed to create schedule')
     }
     setCreating(false)
   }
-
-  const updateField = (field: string, value: string) =>
-    setForm(prev => ({ ...prev, [field]: value }))
 
   const totalPages = Math.ceil(total / 10)
 
@@ -147,49 +202,147 @@ function SchedulesManagementPage() {
         </CardContent>
       </Card>
 
-      {/* Create Schedule Dialog */}
-      <Dialog open={showCreate} onOpenChange={setShowCreate}>
-        <DialogContent className="max-w-md">
+      {/* Create Schedule Dialog — Redesigned */}
+      <Dialog open={showCreate} onOpenChange={(open) => { setShowCreate(open); if (!open) resetForm() }}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Create Schedule</DialogTitle>
-            <DialogDescription>
-              Create 30-minute time slots between the specified dates and times.
-            </DialogDescription>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <CalendarDays className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <DialogTitle>Create Schedule</DialogTitle>
+                <DialogDescription>
+                  Generate 30-minute time slots for the selected date range and time window.
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
           {createError && (
             <div className="bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-lg">{createError}</div>
           )}
 
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Start Date *</Label>
-                <Input type="date" value={form.startDate} onChange={e => updateField('startDate', e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label>End Date *</Label>
-                <Input type="date" value={form.endDate} onChange={e => updateField('endDate', e.target.value)} />
+          <div className="space-y-5">
+            {/* Assign to Doctor */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <User2 className="h-4 w-4 text-muted-foreground" />
+                Assign to Doctor <span className="text-xs text-muted-foreground ml-1">(optional)</span>
+              </Label>
+              <select
+                className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                value={doctorId}
+                onChange={e => setDoctorId(e.target.value)}
+              >
+                <option value="">— No doctor (general schedule) —</option>
+                {loadingDoctors ? (
+                  <option disabled>Loading doctors...</option>
+                ) : (
+                  doctors.map((d: any) => (
+                    <option key={d.id} value={d.id}>
+                      Dr. {d.name} — {d.designation}
+                    </option>
+                  ))
+                )}
+              </select>
+            </div>
+
+            {/* Date Range */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                Date Range
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <span className="text-xs text-muted-foreground">From</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={e => setStartDate(e.target.value)}
+                    className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs text-muted-foreground">To</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={e => setEndDate(e.target.value)}
+                    min={startDate}
+                    className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Start Time *</Label>
-                <Input type="time" value={form.startTime} onChange={e => updateField('startTime', e.target.value)} />
-                <p className="text-xs text-muted-foreground">e.g. 09:00</p>
+
+            {/* Time Window */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                Daily Time Window
+              </Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <span className="text-xs text-muted-foreground">Start Time</span>
+                  <div className="flex gap-1">
+                    <select
+                      value={startHour}
+                      onChange={e => setStartHour(e.target.value)}
+                      className="flex h-10 flex-1 rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {HOURS.map(h => (
+                        <option key={h} value={h}>{h}</option>
+                      ))}
+                    </select>
+                    <span className="flex items-center text-muted-foreground font-bold">:</span>
+                    <select
+                      value={startMinute}
+                      onChange={e => setStartMinute(e.target.value)}
+                      className="flex h-10 flex-1 rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {MINUTES.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-xs text-muted-foreground">End Time</span>
+                  <div className="flex gap-1">
+                    <select
+                      value={endHour}
+                      onChange={e => setEndHour(e.target.value)}
+                      className="flex h-10 flex-1 rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {HOURS.map(h => (
+                        <option key={h} value={h}>{h}</option>
+                      ))}
+                    </select>
+                    <span className="flex items-center text-muted-foreground font-bold">:</span>
+                    <select
+                      value={endMinute}
+                      onChange={e => setEndMinute(e.target.value)}
+                      className="flex h-10 flex-1 rounded-lg border border-input bg-background px-2 py-2 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {MINUTES.map(m => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>End Time *</Label>
-                <Input type="time" value={form.endTime} onChange={e => updateField('endTime', e.target.value)} />
-                <p className="text-xs text-muted-foreground">e.g. 17:00</p>
-              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Slots will be created every 30 minutes from {startHour}:{startMinute} to {endHour}:{endMinute} each day.
+              </p>
             </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => { setShowCreate(false); resetForm() }}>Cancel</Button>
             <Button onClick={handleCreate} disabled={creating}>
-              {creating ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Creating…</> : 'Create Schedule'}
+              {creating ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Creating…</> : <><Plus className="h-4 w-4 mr-2" />Create Schedule</>}
             </Button>
           </div>
         </DialogContent>

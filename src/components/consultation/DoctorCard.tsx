@@ -70,7 +70,7 @@ export function DoctorCard({ doctor }: DoctorCardProps) {
                 <div className="flex items-center justify-between pt-2 border-t">
                     <div>
                         <p className="text-xs text-muted-foreground">Consultation Fee</p>
-                        <p className="font-bold text-primary text-lg">৳{doctor.appointmentFee}</p>
+                        <p className="font-bold text-primary text-lg">${doctor.appointmentFee}</p>
                     </div>
                     <Button size="sm" asChild className="group-hover:shadow-md transition-shadow">
                         <Link to="/doctor/$id" params={{ id: doctor.id }}>

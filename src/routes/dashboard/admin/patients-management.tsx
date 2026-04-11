@@ -1,16 +1,22 @@
 
 
+
 import { useState, useEffect, useCallback } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { Search, Trash2 } from 'lucide-react'
+import { Search, Trash2, Pencil, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from '@/components/ui/dialog'
 import { useDebounce } from '@/hooks'
 import { api, buildQuery } from '@/lib/api'
 import { DeleteConfirmationDialog } from '@/components/shared/DeleteConfirmationDialog'
@@ -31,6 +37,12 @@ function PatientsManagementPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const debouncedSearch = useDebounce(search, 400)
 
+  // Edit state
+  const [editPatient, setEditPatient] = useState<any>(null)
+  const [editForm, setEditForm] = useState<Record<string, any>>({})
+  const [editing, setEditing] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+
   const fetchPatients = useCallback(async () => {
     setLoading(true)
     const qs = buildQuery({ page, limit: 10, searchTerm: debouncedSearch || undefined })
@@ -50,8 +62,40 @@ function PatientsManagementPage() {
     if (res.success) {
       setDeleteId(null)
       fetchPatients()
+      toast.success('Patient deleted successfully')
+    } else {
+      toast.error('Failed to delete patient')
     }
   }
+
+  const openEditDialog = (patient: any) => {
+    setEditPatient(patient)
+    setEditForm({
+      name: patient.name || '',
+      contactNumber: patient.contactNumber || '',
+      address: patient.address || '',
+    })
+    setEditError(null)
+  }
+
+  const handleEdit = async () => {
+    if (!editPatient) return
+    setEditing(true)
+    setEditError(null)
+
+    const res = await api.patch(`/api/patient/${editPatient.id}`, editForm)
+    if (res.success) {
+      setEditPatient(null)
+      fetchPatients()
+      toast.success('Patient updated successfully')
+    } else {
+      setEditError(res.message || 'Failed to update patient')
+      toast.error(res.message || 'Failed to update patient')
+    }
+    setEditing(false)
+  }
+
+  const updateEditField = (field: string, value: any) => setEditForm(prev => ({ ...prev, [field]: value }))
 
   const totalPages = Math.ceil(total / 10)
 
@@ -85,6 +129,7 @@ function PatientsManagementPage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
+                  <TableHead>Contact</TableHead>
                   <TableHead>Address</TableHead>
                   <TableHead>Joined</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -93,7 +138,7 @@ function PatientsManagementPage() {
               <TableBody>
                 {patients.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
                       No patients found.
                     </TableCell>
                   </TableRow>
@@ -114,12 +159,30 @@ function PatientsManagementPage() {
                         </div>
                       </TableCell>
                       <TableCell>{p.email}</TableCell>
+                      <TableCell>{p.contactNumber || '—'}</TableCell>
                       <TableCell>{p.address || '—'}</TableCell>
                       <TableCell>{new Date(p.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" onClick={() => setDeleteId(p.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        <div className="flex gap-1 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditDialog(p)}
+                            aria-label={`Edit patient ${p.name || p.id}`}
+                            title={`Edit patient ${p.name || p.id}`}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeleteId(p.id)}
+                            aria-label={`Delete patient ${p.name || p.id}`}
+                            title={`Delete patient ${p.name || p.id}`}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -146,6 +209,42 @@ function PatientsManagementPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Patient Dialog */}
+      <Dialog open={!!editPatient} onOpenChange={(open) => { if (!open) setEditPatient(null) }}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Patient</DialogTitle>
+            <DialogDescription>Update the patient's information.</DialogDescription>
+          </DialogHeader>
+
+          {editError && (
+            <div className="bg-destructive/10 text-destructive text-sm px-4 py-3 rounded-lg">{editError}</div>
+          )}
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-patient-name">Full Name</Label>
+              <Input id="edit-patient-name" value={editForm.name || ''} onChange={e => updateEditField('name', e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-patient-contact">Contact Number</Label>
+              <Input id="edit-patient-contact" value={editForm.contactNumber || ''} onChange={e => updateEditField('contactNumber', e.target.value)} placeholder="+880..." />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-patient-address">Address</Label>
+              <Input id="edit-patient-address" value={editForm.address || ''} onChange={e => updateEditField('address', e.target.value)} />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button variant="outline" onClick={() => setEditPatient(null)}>Cancel</Button>
+            <Button onClick={handleEdit} disabled={editing}>
+              {editing ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Saving…</> : 'Save Changes'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <DeleteConfirmationDialog
         open={!!deleteId}

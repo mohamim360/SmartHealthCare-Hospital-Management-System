@@ -18,14 +18,54 @@ Important guidelines:
 - Use simple language, avoid excessive medical jargon
 - If asked about emergencies, strongly advise calling emergency services immediately
 - You can suggest specialist types (cardiologist, dermatologist, etc.) based on symptoms
-- Mention that users can "Book an appointment" or "Find a doctor" on our platform
 
 Format:
 - Use bullet points for lists
 - Bold important terms with **asterisks**
-- Keep paragraphs short and scannable`
+- Keep paragraphs short and scannable
+- Include navigation links naturally in your response text`
 
-// ─── Simple in-memory rate limiter ──────────────────────────────
+// Role-based navigation links
+const SHARED_LINKS = [
+  '- Browse all doctors: [Find Doctors](/consultation)',
+  '- Account settings: [Settings](/dashboard/settings)',
+]
+const PATIENT_LINKS = [
+  '- Book an appointment: [Book Appointment](/dashboard/patient/book-appointment)',
+  '- View appointments: [My Appointments](/dashboard/patient/my-appointments)',
+  '- Payment history: [Payment History](/dashboard/patient/payment-history)',
+  '- View prescriptions: [My Prescriptions](/dashboard/patient/my-prescriptions)',
+  '- Health records: [Health Records](/dashboard/patient/health-records)',
+  '- Your reviews: [My Reviews](/dashboard/patient/reviews)',
+]
+const DOCTOR_LINKS = [
+  '- My appointments: [Appointments](/dashboard/doctor/appointments)',
+  '- My schedules: [My Schedules](/dashboard/doctor/my-schedules)',
+  '- Prescriptions: [Prescriptions](/dashboard/doctor/prescriptions)',
+]
+const ADMIN_LINKS = [
+  '- Manage doctors: [Doctors](/dashboard/admin/doctors-management)',
+  '- Manage patients: [Patients](/dashboard/admin/patients-management)',
+  '- Manage appointments: [Appointments](/dashboard/admin/appointments-management)',
+  '- Manage schedules: [Schedules](/dashboard/admin/schedules-management)',
+]
+
+function getNavigationPrompt(role?: string): string {
+  let links = [...SHARED_LINKS]
+  if (role === 'PATIENT') links = [...links, ...PATIENT_LINKS]
+  else if (role === 'DOCTOR') links = [...links, ...DOCTOR_LINKS]
+  else if (role === 'ADMIN' || role === 'SUPER_ADMIN') links = [...links, ...ADMIN_LINKS]
+  // No role = only shared links (safe default)
+
+  return [
+    'Navigation Links — IMPORTANT:',
+    'When relevant, include helpful navigation links using markdown syntax [Link Text](/path). Here are the available pages:',
+    ...links,
+    'Always include at least one relevant link when it makes sense.',
+  ].join('\n')
+}
+
+// Simple in-memory rate limiter
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
 const MAX_REQUESTS_PER_MINUTE = 10
 
@@ -44,7 +84,7 @@ function checkRateLimit(ip: string): { allowed: boolean; retryAfter?: number } {
   return { allowed: true }
 }
 
-// ─── Z.AI (glm-4.5) via OpenAI-compatible API ──────────────────────
+// Z.AI (glm-4.5) via OpenAI-compatible API──
 async function callZai(messages: Array<{ role: string; content: string }>): Promise<string> {
   const apiKey = process.env.ZAI_API_KEY
   if (!apiKey) throw new Error('ZAI_API_KEY not set')
@@ -146,7 +186,7 @@ export const Route = createFileRoute('/api/ai/chat')({
           )
         }
 
-        let body: { messages: Array<{ role: string; content: string }> }
+        let body: { messages: Array<{ role: string; content: string }>; role?: string }
         try {
           body = await request.json()
         } catch {
@@ -163,13 +203,17 @@ export const Route = createFileRoute('/api/ai/chat')({
           )
         }
 
+        // Validate role if provided (only accept known values)
+        const validRoles = ['PATIENT', 'DOCTOR', 'ADMIN', 'SUPER_ADMIN']
+        const userRole = validRoles.includes(body.role ?? '') ? body.role : undefined
+
         const recentMessages = body.messages.slice(-6)
 
         const doctorsContext = await buildDoctorsContext()
         const zaiMessages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [
           {
             role: 'system',
-            content: SYSTEM_PROMPT,
+            content: SYSTEM_PROMPT + '\n\n' + getNavigationPrompt(userRole),
           },
         ]
 
@@ -182,7 +226,7 @@ export const Route = createFileRoute('/api/ai/chat')({
 
         zaiMessages.push(
           ...recentMessages.map((m) => ({
-            role: m.role === 'user' ? 'user' : 'assistant',
+            role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
             content: m.content,
           })),
         )

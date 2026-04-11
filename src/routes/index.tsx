@@ -13,6 +13,7 @@ import { LandingStats } from '@/components/landing/LandingStats'
 import { FeaturedDoctors } from '@/components/landing/FeaturedDoctors'
 import { Testimonials } from '@/components/landing/Testimonials'
 import { AiChatWidget } from '@/components/ai/AiChatWidget'
+import { useAuth } from '@/hooks/useAuth'
 import type { LandingPageData } from '@/lib/landing/landing.service'
 
 export const Route = createFileRoute('/')(
@@ -67,8 +68,35 @@ function useLandingData() {
   return { data, isLoading, error }
 }
 
+function useNextAppointment() {
+  const { user } = useAuth()
+  const [appointment, setAppointment] = useState<any>(null)
+
+  useEffect(() => {
+    if (!user || user.role !== 'PATIENT') return
+    let cancelled = false
+
+    async function fetchNext() {
+      try {
+        const res = await api.get<any[]>('/api/appointment?status=SCHEDULED&limit=1&sortOrder=asc')
+        if (!cancelled && res.success && res.data && (res.data as any[]).length > 0) {
+          setAppointment((res.data as any[])[0])
+        }
+      } catch {
+        // silently fail — hero card is optional
+      }
+    }
+
+    fetchNext()
+    return () => { cancelled = true }
+  }, [user])
+
+  return appointment
+}
+
 function HomePage() {
   const { data, isLoading, error } = useLandingData()
+  const nextAppointment = useNextAppointment()
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -123,17 +151,24 @@ function HomePage() {
                     <Stethoscope className="h-32 w-32 text-primary/30" />
                   </div>
                   {/* Floating cards */}
-                  <div className="absolute -bottom-4 -left-4 rounded-xl bg-card p-4 shadow-lg border">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
-                        <CheckCircle className="h-5 w-5 text-success" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Appointment Booked</p>
-                        <p className="text-xs text-muted-foreground">Dr. Smith • Tomorrow 10 AM</p>
+                  {nextAppointment && (
+                    <div className="absolute -bottom-4 -left-4 rounded-xl bg-card p-4 shadow-lg border">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center">
+                          <CheckCircle className="h-5 w-5 text-success" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">Appointment Booked</p>
+                          <p className="text-xs text-muted-foreground">
+                            {nextAppointment.doctor?.name ?? 'Doctor'} •{' '}
+                            {nextAppointment.schedule?.startDateTime
+                              ? `${new Date(nextAppointment.schedule.startDateTime).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} ${new Date(nextAppointment.schedule.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                              : 'Date TBD'}
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </MotionFadeIn>
             </div>
