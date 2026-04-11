@@ -25,6 +25,26 @@ export const Route = createFileRoute('/dashboard/doctor/my-schedules')({
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
+/** Format ISO datetime to AM/PM locale string */
+function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}
+
+/** Format 24h time string (e.g. '14:00') to AM/PM (e.g. '2:00 PM') */
+function formatTimeAMPM(time24: string): string {
+  const [h, m] = time24.split(':').map(Number)
+  const period = h >= 12 ? 'PM' : 'AM'
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${h12}:${String(m).padStart(2, '0')} ${period}`
+}
+
 type WeeklySlot = {
   dayOfWeek: number
   startTime: string
@@ -193,8 +213,8 @@ function ManualSchedulesTab() {
                     const s = ds.schedule ?? ds
                     return (
                       <TableRow key={ds.id ?? ds.scheduleId}>
-                        <TableCell>{new Date(s.startDateTime).toLocaleString()}</TableCell>
-                        <TableCell>{new Date(s.endDateTime).toLocaleString()}</TableCell>
+                        <TableCell>{formatDateTime(s.startDateTime)}</TableCell>
+                        <TableCell>{formatDateTime(s.endDateTime)}</TableCell>
                         <TableCell>
                           <Badge variant={ds.isBooked ? 'secondary' : 'default'}>
                             {ds.isBooked ? 'Booked' : 'Available'}
@@ -632,7 +652,7 @@ function WeeklyAvailabilityTab() {
                       >
                         <span className="text-sm text-muted-foreground font-medium">{monthDay}</span>
                         {slot && (
-                          <span className="text-[9px] text-muted-foreground mt-0.5">{slot.startTime}</span>
+                          <span className="text-[9px] text-muted-foreground mt-0.5">{formatTimeAMPM(slot.startTime)}</span>
                         )}
                       </div>
                     )
@@ -686,7 +706,7 @@ function WeeklyAvailabilityTab() {
                       </span>
                       {slot && (
                         <span className={`text-[9px] mt-0.5 ${isToday ? 'text-primary/70' : 'text-muted-foreground group-hover:text-destructive/60'}`}>
-                          {slot.startTime}–{slot.endTime}
+                          {formatTimeAMPM(slot.startTime)}–{formatTimeAMPM(slot.endTime)}
                         </span>
                       )}
                     </button>

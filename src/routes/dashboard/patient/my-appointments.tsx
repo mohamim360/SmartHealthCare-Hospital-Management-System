@@ -166,7 +166,7 @@ function PatientMyAppointmentsPage() {
                       <TableCell>{a.doctor?.designation ?? '—'}</TableCell>
                       <TableCell>
                         {a.schedule?.startDateTime
-                          ? new Date(a.schedule.startDateTime).toLocaleString()
+                          ? new Date(a.schedule.startDateTime).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
                           : new Date(a.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>${a.doctor?.appointmentFee ?? '—'}</TableCell>
