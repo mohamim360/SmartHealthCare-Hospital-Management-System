@@ -99,7 +99,10 @@ export function DashboardSidebar({ role = 'ADMIN', className, onNavigate }: Dash
             <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Dashboard navigation">
                 <ul className="space-y-1">
                     {navItems.map((item) => {
-                        const isActive = currentPath === item.href || currentPath.startsWith(item.href + '/')
+                        const isDashboardIndex = item.title === 'Dashboard'
+                        const isActive = isDashboardIndex
+                            ? currentPath === item.href || currentPath === item.href + '/'
+                            : currentPath === item.href || currentPath.startsWith(item.href + '/')
                         const Icon = item.icon
                         return (
                             <li key={item.href}>
