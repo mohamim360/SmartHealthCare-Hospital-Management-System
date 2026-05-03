@@ -114,10 +114,11 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
 // Suggestion chips
 const QUICK_PROMPTS = [
+  '📅 Book an appointment for me',
   '🤒 Check my symptoms',
   '💊 Medication info',
   '🏥 Find a specialist',
-  '🍎 Wellness tips',
+  '🍎 Wellness tips'
 ]
 
 interface AiChatWidgetProps {
@@ -247,7 +248,7 @@ export function AiChatWidget({ context = 'landing' }: AiChatWidgetProps) {
                   <div className="space-y-1.5">
                     <h4 className="font-semibold">Hello! I'm HealthAI 👋</h4>
                     <p className="text-sm text-muted-foreground max-w-[260px]">
-                      Ask me about symptoms, health tips, or finding the right specialist.
+                      Ask me about symptoms, specialists, or booking appointments for you and your staff.
                     </p>
                   </div>
                   {/* Quick prompts */}
@@ -287,7 +288,7 @@ export function AiChatWidget({ context = 'landing' }: AiChatWidgetProps) {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Ask about symptoms, health tips..."
+                  placeholder="Ask about symptoms, specialists, or booking..."
                   disabled={isLoading}
                   className={cn(
                     'flex-1 text-sm bg-background border rounded-xl px-3.5 py-2.5',

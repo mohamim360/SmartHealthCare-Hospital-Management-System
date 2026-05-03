@@ -43,7 +43,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     scripts: [
       {
         // Prevent dark mode flash — runs before paint
-        children: `(function(){try{var t=localStorage.getItem('smarthealthcare-theme');if(t==='dark'||(t!=='light'&&matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
+        children: `(function(){try{var t=localStorage.getItem('smarthealthcare-theme');if(t==='dark'){document.documentElement.classList.add('dark')}}catch(e){}})()`,
       },
     ],
   }),

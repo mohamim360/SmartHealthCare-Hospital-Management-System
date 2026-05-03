@@ -25,7 +25,7 @@ export const Route = createFileRoute('/')(
         {
           name: 'description',
           content:
-            'Find qualified doctors, book appointments instantly, and manage your health records — all from one trusted platform.',
+            'Find qualified doctors, let AI book appointments for you or your staff, and manage health records from one trusted platform.',
         },
       ],
     }),
@@ -120,8 +120,8 @@ function HomePage() {
                   </h1>
 
                   <p className="max-w-lg text-lg text-muted-foreground leading-relaxed">
-                    Find qualified doctors, book appointments instantly, and manage
-                    your health records — all from one trusted platform.
+                    Find qualified doctors, let AI handle appointment booking for you or your staff, and manage
+                    your health records from one trusted platform.
                   </p>
 
                   <div className="flex flex-wrap gap-3">
@@ -194,8 +194,8 @@ function HomePage() {
                 },
                 {
                   icon: Calendar,
-                  title: 'Easy Scheduling',
-                  description: 'Book appointments with just a few clicks.',
+                  title: 'AI-Powered Scheduling',
+                  description: 'Let AI book appointments for patients and staff in seconds.',
                 },
                 {
                   icon: Shield,

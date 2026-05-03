@@ -1,5 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { prisma } from '../../../db'
+import { verifyAuth } from '@/lib/auth/auth.middleware'
+import { createAppointmentByActor } from '@/lib/appointment/appointment.service'
 
 const SYSTEM_PROMPT = `You are HealthAI, a helpful and empathetic health assistant for Smart Health Care, a modern healthcare platform.
 
@@ -9,6 +11,7 @@ Your role:
 - Provide wellness tips, preventive care advice, and healthy lifestyle suggestions
 - Guide users on when to seek emergency care vs. scheduling a regular appointment
 - Recommend booking an appointment on our platform when appropriate
+- Handle booking requests directly when possible, including booking for admin staff on behalf of patients
 
 Important guidelines:
 - NEVER diagnose conditions — always recommend consulting a qualified doctor
@@ -149,10 +152,10 @@ async function buildDoctorsContext() {
     if (!doctors.length) return ''
 
     const lines = doctors.map((d) => {
-      const parts: string[] = [d.name]
+      const parts: Array<string> = [d.name]
       if (d.designation) parts.push(d.designation)
       if (d.currentWorkingPlace) parts.push(d.currentWorkingPlace)
-      const tail: string[] = []
+      const tail: Array<string> = []
       if (typeof d.averageRating === 'number') tail.push(`Rating: ${d.averageRating.toFixed(1)}`)
       if (typeof d.appointmentFee === 'number') tail.push(`Fee: ${d.appointmentFee}`)
       const head = parts.join(' — ')
@@ -169,6 +172,403 @@ async function buildDoctorsContext() {
   } catch (err) {
     console.error('[AI] Failed to load doctors for context:', (err as any)?.message ?? err)
     return ''
+  }
+}
+
+function isBookingIntent(text: string) {
+  const normalized = text.toLowerCase()
+  return normalized.includes('book') && (normalized.includes('appointment') || normalized.includes('slot'))
+}
+
+function isConfirmationIntent(text: string) {
+  const normalized = text.toLowerCase().trim()
+  return ['confirm', 'yes', 'yes confirm', 'book it', 'proceed'].includes(normalized)
+}
+
+function getSlotSelectionIndex(text: string): number | null {
+  const trimmed = text.trim()
+  if (!/^\d+$/.test(trimmed)) return null
+  const idx = Number(trimmed)
+  if (!Number.isInteger(idx) || idx <= 0) return null
+  return idx - 1
+}
+
+function isLikelyNameOnlyReply(text: string) {
+  const trimmed = text.trim()
+  if (!trimmed) return false
+  if (trimmed.includes('@')) return false
+  if (trimmed.length > 40) return false
+  return /^[a-zA-Z.\s'-]+$/.test(trimmed)
+}
+
+function shouldContinueBookingFlow(messages: Array<{ role: string; content: string }>, lastMessage: string) {
+  if (isConfirmationIntent(lastMessage)) return true
+  if (getSlotSelectionIndex(lastMessage) !== null) {
+    const recentAssistantMsgs = messages
+      .slice(-6)
+      .filter((m) => m.role === 'assistant')
+      .map((m) => m.content.toLowerCase())
+    return recentAssistantMsgs.some((text) => text.includes('reply with slot number'))
+  }
+  if (isBookingIntent(lastMessage)) return true
+  if (!isLikelyNameOnlyReply(lastMessage)) return false
+
+  const recentAssistantMsgs = messages
+    .slice(-6)
+    .filter((m) => m.role === 'assistant')
+    .map((m) => m.content.toLowerCase())
+
+  return recentAssistantMsgs.some((text) =>
+    text.includes('please tell me which doctor to book with'),
+  )
+}
+
+function extractPatientEmail(text: string): string | undefined {
+  const match = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)
+  return match?.[0]
+}
+
+function extractDoctorHint(text: string): string | undefined {
+  const drMatch = text.match(/(?:with|for)\s+(?:dr\.?\s*)?([a-z][a-z\s.'-]{2,})/i)
+  if (drMatch?.[1]) return drMatch[1].trim()
+  return undefined
+}
+
+async function getDoctorsWithFreeSlots(limit: number = 3) {
+  const rows = await prisma.doctorSchedules.findMany({
+    where: {
+      isBooked: false,
+      schedule: { startDateTime: { gt: new Date() } },
+      doctor: { isDeleted: false },
+    },
+    select: {
+      doctor: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+    distinct: ['doctorId'],
+    take: limit,
+  })
+
+  return rows.map((row) => row.doctor)
+}
+
+type PendingBooking = {
+  doctorId: string
+  doctorName: string
+  slotOptions: Array<{ scheduleId: string; slotStartIso: string }>
+  selectedOptionIndex?: number
+  patientEmail?: string
+  expiresAt: number
+}
+
+const pendingBookingByActor = new Map<string, PendingBooking>()
+const PENDING_BOOKING_TTL_MS = 10 * 60 * 1000
+
+function getActorBookingKey(actor: { role: string; email: string }) {
+  return `${actor.role}:${actor.email.toLowerCase()}`
+}
+
+async function tryAiBooking({
+  request,
+  userRole,
+  lastMessage,
+  messages,
+}: {
+  request: Request
+  userRole?: string
+  lastMessage?: string
+  messages: Array<{ role: string; content: string }>
+}) {
+  if (!lastMessage || !shouldContinueBookingFlow(messages, lastMessage)) return null
+
+  const actor = verifyAuth(request)
+  if (!actor) {
+    return {
+      text: [
+        'I can book appointments for you, but you need to login first.',
+        '- Login and try again',
+        '- Then open [Book Appointment](/dashboard/patient/book-appointment) if you prefer manual booking',
+      ].join('\n'),
+    }
+  }
+
+  if (!['PATIENT', 'ADMIN', 'SUPER_ADMIN'].includes(userRole || actor.role)) {
+    return {
+      text: [
+        'I can currently create bookings only for **patients** or **admin staff**.',
+        '- You can still manage schedules from [My Schedules](/dashboard/doctor/my-schedules)',
+      ].join('\n'),
+    }
+  }
+
+  const doctorHint = extractDoctorHint(lastMessage) ?? (isLikelyNameOnlyReply(lastMessage) ? lastMessage.trim() : undefined)
+  const patientEmail = extractPatientEmail(lastMessage)
+  const now = new Date()
+  const actorKey = getActorBookingKey(actor)
+  const pending = pendingBookingByActor.get(actorKey)
+  if (pending && pending.expiresAt < Date.now()) {
+    pendingBookingByActor.delete(actorKey)
+  }
+
+  if (isConfirmationIntent(lastMessage)) {
+    const currentPending = pendingBookingByActor.get(actorKey)
+    if (!currentPending) {
+      return {
+        text: [
+          'There is no pending booking to confirm right now.',
+          '- Start a new booking by telling me the doctor name',
+          '- Or open [Book Appointment](/dashboard/patient/book-appointment)',
+        ].join('\n'),
+      }
+    }
+
+    if (currentPending.selectedOptionIndex === undefined) {
+      return {
+        text: [
+          `Please choose a time first for **${currentPending.doctorName}**.`,
+          '- Reply with slot number (example: **1**)',
+        ].join('\n'),
+      }
+    }
+
+    try {
+      const selected = currentPending.slotOptions[currentPending.selectedOptionIndex]
+
+      const appointment = await createAppointmentByActor(actor, {
+        doctorId: currentPending.doctorId,
+        scheduleId: selected.scheduleId,
+        patientEmail: currentPending.patientEmail,
+      })
+      pendingBookingByActor.delete(actorKey)
+      const dateText = new Date(selected.slotStartIso).toLocaleString()
+      return {
+        text: [
+          `Confirmed. I booked **${currentPending.doctorName}** for **${dateText}**.`,
+          `- Appointment ID: \`${appointment.id}\``,
+          '- View appointments: [My Appointments](/dashboard/patient/my-appointments)',
+          '- Complete payment: [Payment History](/dashboard/patient/payment-history)',
+        ].join('\n'),
+      }
+    } catch (err: any) {
+      pendingBookingByActor.delete(actorKey)
+      const message = String(err?.message || 'Booking failed')
+      return {
+        text: [
+          `I tried to confirm the booking, but failed: **${message}**`,
+          '- Please ask me to find the next available slot again',
+          '- Or book manually: [Book Appointment](/dashboard/patient/book-appointment)',
+        ].join('\n'),
+      }
+    }
+  }
+
+  const selectedSlotIndex = getSlotSelectionIndex(lastMessage)
+  if (selectedSlotIndex !== null) {
+    const currentPending = pendingBookingByActor.get(actorKey)
+    if (!currentPending) {
+      return {
+        text: [
+          'There is no active slot list right now.',
+          '- Ask me to book an appointment first',
+        ].join('\n'),
+      }
+    }
+    if (selectedSlotIndex >= currentPending.slotOptions.length) {
+      return {
+        text: [
+          `Please choose a valid slot number between 1 and ${currentPending.slotOptions.length}.`,
+        ].join('\n'),
+      }
+    }
+
+    currentPending.selectedOptionIndex = selectedSlotIndex
+    pendingBookingByActor.set(actorKey, currentPending)
+    const chosen = currentPending.slotOptions[selectedSlotIndex]
+    const dateText = new Date(chosen.slotStartIso).toLocaleString()
+
+    return {
+      text: [
+        `Selected: **${currentPending.doctorName}** at **${dateText}**.`,
+        '- Reply **Confirm** to create this appointment',
+        '- Reply with another slot number to change time',
+      ].join('\n'),
+    }
+  }
+
+  if ((actor.role === 'ADMIN' || actor.role === 'SUPER_ADMIN') && !patientEmail) {
+    return {
+      text: [
+        'I can book this for staff/patients, but I need the patient email first.',
+        '- Please send: **book appointment for patient@example.com with Dr. Name**',
+        '- Or use manual flow: [Book Appointment](/dashboard/patient/book-appointment)',
+      ].join('\n'),
+    }
+  }
+
+  if (!doctorHint) {
+    const availableDoctors = await getDoctorsWithFreeSlots(3)
+    const suggestions = availableDoctors.length
+      ? availableDoctors.map((d) => `- ${d.name}`).join('\n')
+      : '- No doctors with free slots found right now'
+    return {
+      text: [
+        'Please tell me which doctor to book with (example: **with Dr. Name**).',
+        'Doctors with free slots now:',
+        suggestions,
+        '- Or browse doctors: [Find Doctors](/consultation)',
+      ].join('\n'),
+    }
+  }
+
+  const doctor = await prisma.doctor.findFirst({
+    where: {
+      isDeleted: false,
+      name: { contains: doctorHint, mode: 'insensitive' },
+    },
+    orderBy: { averageRating: 'desc' },
+  })
+
+  if (!doctor) {
+    return {
+      text: [
+        'I could not find a matching doctor for that request.',
+        '- Browse doctors: [Find Doctors](/consultation)',
+        '- Book manually: [Book Appointment](/dashboard/patient/book-appointment)',
+      ].join('\n'),
+    }
+  }
+
+  const slots = await prisma.doctorSchedules.findMany({
+    where: {
+      doctorId: doctor.id,
+      isBooked: false,
+      schedule: {
+        startDateTime: { gt: now },
+      },
+    },
+    include: {
+      schedule: true,
+    },
+    orderBy: {
+      schedule: {
+        startDateTime: 'asc',
+      },
+    },
+    take: 5,
+  })
+
+  if (slots.length === 0) {
+    // Fallback for admin staff:
+    // if the doctor has no assigned future slots, auto-assign the earliest
+    // unassigned future schedule slot so AI booking can proceed.
+    if (actor.role === 'ADMIN' || actor.role === 'SUPER_ADMIN') {
+      const unassignedSchedule = await prisma.schedule.findFirst({
+        where: {
+          startDateTime: { gt: now },
+          doctorSchedules: {
+            none: {},
+          },
+        },
+        orderBy: { startDateTime: 'asc' },
+      })
+
+      if (unassignedSchedule) {
+        await prisma.doctorSchedules.create({
+          data: {
+            doctorId: doctor.id,
+            scheduleId: unassignedSchedule.id,
+          },
+        })
+
+        pendingBookingByActor.set(actorKey, {
+          doctorId: doctor.id,
+          doctorName: doctor.name,
+          slotOptions: [
+            {
+              scheduleId: unassignedSchedule.id,
+              slotStartIso: new Date(unassignedSchedule.startDateTime).toISOString(),
+            },
+          ],
+          selectedOptionIndex: 0,
+          patientEmail,
+          expiresAt: Date.now() + PENDING_BOOKING_TTL_MS,
+        })
+
+        const dateText = new Date(unassignedSchedule.startDateTime).toLocaleString()
+        return {
+          text: [
+            `I found a slot for **${doctor.name}** at **${dateText}** and prepared the booking.`,
+            '- Reply **Confirm** to create this appointment',
+            '- Reply with another doctor name to change doctor',
+            '- Or book manually: [Book Appointment](/dashboard/patient/book-appointment)',
+          ].join('\n'),
+        }
+      }
+    }
+
+    const otherDoctors = await getDoctorsWithFreeSlots(3)
+    const otherDoctorLines = otherDoctors
+      .filter((d) => d.id !== doctor.id)
+      .map((d) => `- ${d.name}`)
+      .join('\n')
+
+    const noSlotAdvice = otherDoctorLines
+      ? `Doctors with free slots now:\n${otherDoctorLines}`
+      : 'No other doctors with free slots found right now.'
+
+    return {
+      text: [
+        `I found **${doctor.name}**, but there are no free future slots right now.`,
+        '- If you just created schedules, make sure they are assigned to this doctor',
+        noSlotAdvice,
+        '- Try another doctor: [Find Doctors](/consultation)',
+        '- Manage appointments: [My Appointments](/dashboard/patient/my-appointments)',
+      ].join('\n'),
+    }
+  }
+
+  const slotOptions = slots.map((s) => ({
+    scheduleId: s.scheduleId,
+    slotStartIso: new Date(s.schedule.startDateTime).toISOString(),
+  }))
+
+  pendingBookingByActor.set(actorKey, {
+    doctorId: doctor.id,
+    doctorName: doctor.name,
+    slotOptions,
+    selectedOptionIndex: slotOptions.length === 1 ? 0 : undefined,
+    patientEmail,
+    expiresAt: Date.now() + PENDING_BOOKING_TTL_MS,
+  })
+
+  if (slotOptions.length === 1) {
+    const dateText = new Date(slotOptions[0].slotStartIso).toLocaleString()
+    return {
+      text: [
+        `I found one available slot with **${doctor.name}** at **${dateText}**.`,
+        '- Reply **Confirm** to create this appointment',
+        '- Reply with another doctor name to change doctor',
+      ].join('\n'),
+    }
+  }
+
+  const slotLines = slotOptions
+    .map((option, i) => `- ${i + 1}. ${new Date(option.slotStartIso).toLocaleString()}`)
+    .join('\n')
+
+  return {
+    text: [
+      `I found multiple free times with **${doctor.name}**.`,
+      'Available slots:',
+      slotLines,
+      '- Reply with slot number (example: **1**) to choose time',
+      '- Then reply **Confirm** to create this appointment',
+      '- Or choose another doctor: [Find Doctors](/consultation)',
+    ].join('\n'),
   }
 }
 
@@ -196,7 +596,7 @@ export const Route = createFileRoute('/api/ai/chat')({
           )
         }
 
-        if (!body.messages?.length) {
+        if (!body.messages.length) {
           return new Response(
             JSON.stringify({ error: 'messages array is required' }),
             { status: 400, headers: { 'Content-Type': 'application/json' } },
@@ -206,6 +606,20 @@ export const Route = createFileRoute('/api/ai/chat')({
         // Validate role if provided (only accept known values)
         const validRoles = ['PATIENT', 'DOCTOR', 'ADMIN', 'SUPER_ADMIN']
         const userRole = validRoles.includes(body.role ?? '') ? body.role : undefined
+        const lastMessage = body.messages[body.messages.length - 1]?.content
+
+        const bookingResult = await tryAiBooking({
+          request,
+          userRole,
+          lastMessage,
+          messages: body.messages,
+        })
+        if (bookingResult) {
+          return new Response(
+            JSON.stringify({ text: bookingResult.text, provider: 'booking-assistant' }),
+            { status: 200, headers: { 'Content-Type': 'application/json' } },
+          )
+        }
 
         const recentMessages = body.messages.slice(-6)
 
@@ -226,7 +640,7 @@ export const Route = createFileRoute('/api/ai/chat')({
 
         zaiMessages.push(
           ...recentMessages.map((m) => ({
-            role: (m.role === 'user' ? 'user' : 'assistant') as 'user' | 'assistant',
+            role: m.role === 'user' ? 'user' : 'assistant',
             content: m.content,
           })),
         )

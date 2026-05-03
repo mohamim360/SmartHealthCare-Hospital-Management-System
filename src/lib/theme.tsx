@@ -17,8 +17,8 @@ const STORAGE_KEY = 'smarthealthcare-theme'
 const isServer = typeof window === 'undefined'
 
 function getStoredTheme(): Theme {
-    if (isServer) return 'system'
-    return (localStorage.getItem(STORAGE_KEY) as Theme) ?? 'system'
+    if (isServer) return 'light'
+    return (localStorage.getItem(STORAGE_KEY) as Theme) ?? 'light'
 }
 
 function resolveTheme(theme: Theme): 'light' | 'dark' {

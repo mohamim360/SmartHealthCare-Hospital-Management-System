@@ -1,17 +1,16 @@
+import type { UserPayload } from '@/lib/auth/auth.middleware'
 import { AppointmentStatus, PaymentStatus } from '@/generated/prisma/client'
 import { prisma } from '@/db'
-import type { UserPayload } from '@/lib/auth/auth.middleware'
 
 export type CreateAppointmentInput = {
   doctorId: string
   scheduleId: string
 }
 
-export async function createAppointment(user: UserPayload, payload: CreateAppointmentInput) {
+async function createAppointmentForPatientEmail(patientEmail: string, payload: CreateAppointmentInput) {
   const patient = await prisma.patient.findUniqueOrThrow({
-    where: { email: user.email },
+    where: { email: patientEmail },
   })
-
   const doctor = await prisma.doctor.findUniqueOrThrow({
     where: { id: payload.doctorId, isDeleted: false },
   })
@@ -87,6 +86,32 @@ export async function createAppointment(user: UserPayload, payload: CreateAppoin
   )
 
   return result
+}
+
+export async function createAppointment(user: UserPayload, payload: CreateAppointmentInput) {
+  return createAppointmentForPatientEmail(user.email, payload)
+}
+
+type CreateAppointmentByActorInput = CreateAppointmentInput & {
+  patientEmail?: string
+}
+
+export async function createAppointmentByActor(
+  user: UserPayload,
+  payload: CreateAppointmentByActorInput,
+) {
+  if (user.role === 'PATIENT') {
+    return createAppointmentForPatientEmail(user.email, payload)
+  }
+
+  if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+    if (!payload.patientEmail) {
+      throw new Error('patientEmail is required when admin books for staff/patients')
+    }
+    return createAppointmentForPatientEmail(payload.patientEmail, payload)
+  }
+
+  throw new Error('Only patients and admins can create bookings via AI assistant')
 }
 
 /**
