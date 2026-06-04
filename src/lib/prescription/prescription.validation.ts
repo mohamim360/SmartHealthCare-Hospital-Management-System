@@ -5,3 +5,8 @@ export const createPrescriptionSchema = z.object({
   instructions: z.string().min(1, 'Instructions are required'),
   followUpDate: z.union([z.string(), z.date()]).optional(),
 })
+
+export const updatePrescriptionSchema = z.object({
+  instructions: z.string().min(1, 'Instructions are required'),
+  followUpDate: z.union([z.string(), z.date(), z.null()]).optional(),
+})

@@ -37,6 +37,7 @@ export enum AppointmentStatus {
 export enum PaymentStatus {
     PAID = 'PAID',
     UNPAID = 'UNPAID',
+    REFUNDED = 'REFUNDED',
 }
 
 /** Standard paginated API response shape */

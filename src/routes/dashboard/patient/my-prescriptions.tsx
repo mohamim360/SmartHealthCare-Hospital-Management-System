@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { FileText } from 'lucide-react'
+import { Eye, FileText } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -10,6 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api, buildQuery } from '@/lib/api'
+import { PrescriptionDetailDialog } from '@/components/prescriptions/PrescriptionDetailDialog'
 
 export const Route = createFileRoute('/dashboard/patient/my-prescriptions')({
     component: PatientMyPrescriptionsPage,
@@ -20,6 +21,8 @@ function PatientMyPrescriptionsPage() {
     const [total, setTotal] = useState(0)
     const [page, setPage] = useState(1)
     const [loading, setLoading] = useState(true)
+    const [selectedId, setSelectedId] = useState<string | null>(null)
+    const [dialogOpen, setDialogOpen] = useState(false)
 
     const fetchPrescriptions = useCallback(async () => {
         setLoading(true)
@@ -33,6 +36,11 @@ function PatientMyPrescriptionsPage() {
     }, [page])
 
     useEffect(() => { fetchPrescriptions() }, [fetchPrescriptions])
+
+    const openDetails = (id: string) => {
+        setSelectedId(id)
+        setDialogOpen(true)
+    }
 
     const totalPages = Math.ceil(total / 10)
 
@@ -63,12 +71,13 @@ function PatientMyPrescriptionsPage() {
                                     <TableHead>Instructions</TableHead>
                                     <TableHead>Follow-up Date</TableHead>
                                     <TableHead>Date Issued</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {prescriptions.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center text-muted-foreground py-12">
+                                        <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
                                             No prescriptions yet.
                                         </TableCell>
                                     </TableRow>
@@ -82,10 +91,21 @@ function PatientMyPrescriptionsPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="max-w-xs">
-                                                <p className="text-sm truncate">{p.instructions}</p>
+                                                <p className="text-sm line-clamp-2">{p.instructions}</p>
                                             </TableCell>
                                             <TableCell>{p.followUpDate ? new Date(p.followUpDate).toLocaleDateString() : '—'}</TableCell>
                                             <TableCell>{new Date(p.createdAt).toLocaleDateString()}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-1"
+                                                    onClick={() => openDetails(p.id)}
+                                                >
+                                                    <Eye className="h-4 w-4" />
+                                                    View Full
+                                                </Button>
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 )}
@@ -104,6 +124,13 @@ function PatientMyPrescriptionsPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <PrescriptionDetailDialog
+                prescriptionId={selectedId}
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                mode="view"
+            />
         </div>
     )
 }

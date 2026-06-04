@@ -1,5 +1,7 @@
 import { prisma } from '@/db'
 import { addMinutes, addHours, format, addDays, startOfDay, parse } from 'date-fns'
+import { PaymentStatus } from '@/generated/prisma/client'
+import { refundPaymentForAppointment } from '@/lib/payment/payment.service'
 
 export type DaySlot = {
   dayOfWeek: number
@@ -70,6 +72,23 @@ export async function cancelDay(doctorId: string, date: string, reason?: string)
   const dateObj = startOfDay(parse(date, 'yyyy-MM-dd', new Date()))
   const nextDay = addDays(dateObj, 1)
 
+  const appointmentsToCancel = await prisma.appointment.findMany({
+    where: {
+      doctorId,
+      status: 'SCHEDULED',
+      schedule: {
+        startDateTime: { gte: dateObj, lt: nextDay },
+      },
+    },
+    select: { id: true, scheduleId: true, paymentStatus: true },
+  })
+
+  for (const appt of appointmentsToCancel) {
+    if (appt.paymentStatus === PaymentStatus.PAID) {
+      await refundPaymentForAppointment(appt.id)
+    }
+  }
+
   return prisma.$transaction(async (tx) => {
     // 1. Record the cancellation
     const cancellation = await tx.doctorDayCancellation.upsert({
@@ -88,7 +107,8 @@ export async function cancelDay(doctorId: string, date: string, reason?: string)
     })
 
     // 2. Find all SCHEDULED appointments for this doctor on this date
-    const appointmentsToCancel = await tx.appointment.findMany({
+    // (already loaded above; re-query inside tx for consistency)
+    const txAppointments = await tx.appointment.findMany({
       where: {
         doctorId,
         status: 'SCHEDULED',
@@ -100,10 +120,10 @@ export async function cancelDay(doctorId: string, date: string, reason?: string)
     })
 
     // 3. Cancel those appointments and free up the schedule slots
-    if (appointmentsToCancel.length > 0) {
+    if (txAppointments.length > 0) {
       await tx.appointment.updateMany({
         where: {
-          id: { in: appointmentsToCancel.map(a => a.id) },
+          id: { in: txAppointments.map((a) => a.id) },
         },
         data: { status: 'CANCEL' },
       })
@@ -111,7 +131,7 @@ export async function cancelDay(doctorId: string, date: string, reason?: string)
       await tx.doctorSchedules.updateMany({
         where: {
           doctorId,
-          scheduleId: { in: appointmentsToCancel.map(a => a.scheduleId) },
+          scheduleId: { in: txAppointments.map((a) => a.scheduleId) },
         },
         data: { isBooked: false },
       })
@@ -119,7 +139,7 @@ export async function cancelDay(doctorId: string, date: string, reason?: string)
 
     return {
       ...cancellation,
-      cancelledAppointments: appointmentsToCancel.length,
+      cancelledAppointments: txAppointments.length,
     }
   })
 }

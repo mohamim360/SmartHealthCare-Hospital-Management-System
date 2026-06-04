@@ -27,6 +27,14 @@ export async function createCheckoutSession(appointmentId: string, userEmail: st
     throw new Error('Payment already completed')
   }
 
+  if (appointment.paymentStatus === PaymentStatus.REFUNDED) {
+    throw new Error('Payment was refunded for this cancelled appointment')
+  }
+
+  if (appointment.status === 'CANCEL') {
+    throw new Error('Cannot pay for a cancelled appointment')
+  }
+
   if (!appointment.payment) {
     throw new Error('No payment record found')
   }
@@ -174,7 +182,11 @@ export async function getPayments(
   const where: any = {}
 
   // Status filter
-  if (options.status === 'PAID' || options.status === 'UNPAID') {
+  if (
+    options.status === 'PAID' ||
+    options.status === 'UNPAID' ||
+    options.status === 'REFUNDED'
+  ) {
     where.status = options.status
   }
 
@@ -231,4 +243,64 @@ export async function getPaymentStats() {
     paidCount,
     unpaidCount,
   }
+}
+
+/**
+ * Refund a paid appointment via Stripe (when applicable) and mark payment REFUNDED.
+ */
+export async function refundPaymentForAppointment(appointmentId: string) {
+  const appointment = await prisma.appointment.findUnique({
+    where: { id: appointmentId },
+    include: { payment: true },
+  })
+
+  if (!appointment?.payment) {
+    return { refunded: false as const, reason: 'no_payment' as const }
+  }
+
+  if (appointment.paymentStatus !== PaymentStatus.PAID) {
+    return { refunded: false as const, reason: 'not_paid' as const }
+  }
+
+  if (appointment.payment.status === PaymentStatus.REFUNDED) {
+    return { refunded: true as const, alreadyRefunded: true as const }
+  }
+
+  const paymentIntentId = appointment.payment.transactionId
+  let stripeRefundId: string | null = null
+
+  if (paymentIntentId.startsWith('pi_')) {
+    const refund = await getStripe().refunds.create({
+      payment_intent: paymentIntentId,
+    })
+    stripeRefundId = refund.id
+  }
+
+  const existingGateway =
+    appointment.payment.paymentGatewayData &&
+    typeof appointment.payment.paymentGatewayData === 'object' &&
+    !Array.isArray(appointment.payment.paymentGatewayData)
+      ? (appointment.payment.paymentGatewayData as Record<string, unknown>)
+      : {}
+
+  await prisma.$transaction(async (tnx) => {
+    await tnx.payment.update({
+      where: { id: appointment.payment!.id },
+      data: {
+        status: PaymentStatus.REFUNDED,
+        paymentGatewayData: {
+          ...existingGateway,
+          refundId: stripeRefundId,
+          refundedAt: new Date().toISOString(),
+        },
+      },
+    })
+
+    await tnx.appointment.update({
+      where: { id: appointmentId },
+      data: { paymentStatus: PaymentStatus.REFUNDED },
+    })
+  })
+
+  return { refunded: true as const, stripeRefundId }
 }

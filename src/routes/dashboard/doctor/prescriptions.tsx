@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { FileText } from 'lucide-react'
+import { Eye, FileText, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -10,6 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api, buildQuery } from '@/lib/api'
+import { PrescriptionDetailDialog } from '@/components/prescriptions/PrescriptionDetailDialog'
 
 export const Route = createFileRoute('/dashboard/doctor/prescriptions')({
     component: DoctorPrescriptionsPage,
@@ -20,6 +21,9 @@ function DoctorPrescriptionsPage() {
     const [total, setTotal] = useState(0)
     const [page, setPage] = useState(1)
     const [loading, setLoading] = useState(true)
+    const [selectedId, setSelectedId] = useState<string | null>(null)
+    const [dialogOpen, setDialogOpen] = useState(false)
+    const [dialogMode, setDialogMode] = useState<'view' | 'edit'>('view')
 
     const fetchPrescriptions = useCallback(async () => {
         setLoading(true)
@@ -33,6 +37,12 @@ function DoctorPrescriptionsPage() {
     }, [page])
 
     useEffect(() => { fetchPrescriptions() }, [fetchPrescriptions])
+
+    const openDialog = (id: string, mode: 'view' | 'edit') => {
+        setSelectedId(id)
+        setDialogMode(mode)
+        setDialogOpen(true)
+    }
 
     const totalPages = Math.ceil(total / 10)
 
@@ -63,12 +73,13 @@ function DoctorPrescriptionsPage() {
                                     <TableHead>Instructions</TableHead>
                                     <TableHead>Follow-up</TableHead>
                                     <TableHead>Date Issued</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {prescriptions.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center text-muted-foreground py-12">
+                                        <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
                                             No prescriptions issued yet.
                                         </TableCell>
                                     </TableRow>
@@ -76,9 +87,33 @@ function DoctorPrescriptionsPage() {
                                     prescriptions.map((p: any) => (
                                         <TableRow key={p.id}>
                                             <TableCell className="font-medium">{p.patient?.name ?? '—'}</TableCell>
-                                            <TableCell className="max-w-xs truncate">{p.instructions}</TableCell>
+                                            <TableCell className="max-w-xs">
+                                                <p className="text-sm line-clamp-2">{p.instructions}</p>
+                                            </TableCell>
                                             <TableCell>{p.followUpDate ? new Date(p.followUpDate).toLocaleDateString() : '—'}</TableCell>
                                             <TableCell>{new Date(p.createdAt).toLocaleDateString()}</TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex justify-end gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="gap-1"
+                                                        onClick={() => openDialog(p.id, 'view')}
+                                                    >
+                                                        <Eye className="h-4 w-4" />
+                                                        View
+                                                    </Button>
+                                                    <Button
+                                                        variant="default"
+                                                        size="sm"
+                                                        className="gap-1"
+                                                        onClick={() => openDialog(p.id, 'edit')}
+                                                    >
+                                                        <Pencil className="h-4 w-4" />
+                                                        Edit
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 )}
@@ -97,6 +132,14 @@ function DoctorPrescriptionsPage() {
                     )}
                 </CardContent>
             </Card>
+
+            <PrescriptionDetailDialog
+                prescriptionId={selectedId}
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                mode={dialogMode}
+                onSaved={fetchPrescriptions}
+            />
         </div>
     )
 }

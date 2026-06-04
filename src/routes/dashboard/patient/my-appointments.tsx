@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Calendar, Star, XCircle, CreditCard } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -74,8 +75,13 @@ function PatientMyAppointmentsPage() {
     if (res.success) {
       setCancelDialog({ open: false, appointment: null })
       fetchAppointments()
+      if (cancelDialog.appointment.paymentStatus === 'PAID') {
+        toast.success('Appointment cancelled. Your payment will be refunded shortly.')
+      } else {
+        toast.success('Appointment cancelled successfully.')
+      }
     } else {
-      alert(res.message || 'Failed to cancel appointment')
+      toast.error(res.message || 'Failed to cancel appointment')
     }
   }
 
@@ -176,7 +182,13 @@ function PatientMyAppointmentsPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className={`text-xs font-medium ${a.paymentStatus === 'PAID' ? 'text-green-600' : 'text-orange-600'}`}>
+                        <span className={`text-xs font-medium ${
+                          a.paymentStatus === 'PAID'
+                            ? 'text-green-600'
+                            : a.paymentStatus === 'REFUNDED'
+                              ? 'text-blue-600'
+                              : 'text-orange-600'
+                        }`}>
                           {a.paymentStatus}
                         </span>
                       </TableCell>
@@ -247,10 +259,15 @@ function PatientMyAppointmentsPage() {
               Are you sure you want to cancel your appointment with Dr. {cancelDialog.appointment?.doctor?.name ?? ''}?
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
             <p className="text-sm text-amber-800">
               <strong>Warning:</strong> This action cannot be undone. The time slot will be released for other patients.
             </p>
+            {cancelDialog.appointment?.paymentStatus === 'PAID' && (
+              <p className="text-sm text-amber-800">
+                A refund will be issued to your original payment method for this appointment.
+              </p>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelDialog({ open: false, appointment: null })} disabled={cancelSubmitting}>

@@ -12,10 +12,16 @@ export async function getPrescriptions(
 
     if (user.role === 'PATIENT') {
         const patient = await prisma.patient.findUnique({ where: { email: user.email } })
-        if (patient) where.patientId = patient.id
+        if (!patient) {
+            return { data: [], meta: { page, limit, total: 0 } }
+        }
+        where.patientId = patient.id
     } else if (user.role === 'DOCTOR') {
         const doctor = await prisma.doctor.findUnique({ where: { email: user.email } })
-        if (doctor) where.doctorId = doctor.id
+        if (!doctor) {
+            return { data: [], meta: { page, limit, total: 0 } }
+        }
+        where.doctorId = doctor.id
     }
 
     const [data, total] = await Promise.all([
@@ -25,9 +31,16 @@ export async function getPrescriptions(
             take: limit,
             orderBy: { createdAt: sortOrder },
             include: {
-                patient: { select: { id: true, name: true, email: true } },
-                doctor: { select: { id: true, name: true, email: true, designation: true } },
-                appointment: { select: { id: true, status: true } },
+                patient: { select: { id: true, name: true, email: true, contactNumber: true } },
+                doctor: { select: { id: true, name: true, email: true, designation: true, profilePhoto: true } },
+                appointment: {
+                    select: {
+                        id: true,
+                        status: true,
+                        paymentStatus: true,
+                        schedule: { select: { startDateTime: true, endDateTime: true } },
+                    },
+                },
             },
         }),
         prisma.prescription.count({ where }),

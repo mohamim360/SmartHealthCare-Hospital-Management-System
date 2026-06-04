@@ -1,428 +1,308 @@
-Welcome to your new TanStack app! 
+<p align="center">
+  <img src="docs/cover/smarthealthcare.png" alt="Smart Health Care — full-stack healthcare portal" width="100%" />
+</p>
 
-# Getting Started
+<p align="center">
+  <img src="https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
+  <img src="https://img.shields.io/badge/TanStack_Start-FF4154?style=for-the-badge&logo=tanstack&logoColor=white" alt="TanStack Start" />
+  <img src="https://img.shields.io/badge/TanStack_Router-FF4154?style=for-the-badge&logo=tanstack&logoColor=white" alt="TanStack Router" />
+  <img src="https://img.shields.io/badge/TanStack_Query-FF4154?style=for-the-badge&logo=tanstack&logoColor=white" alt="TanStack Query" />
+  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+</p>
 
-To run this application:
+<p align="center">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
+  <img src="https://img.shields.io/badge/shadcn%2Fui-000000?style=for-the-badge&logo=shadcnui&logoColor=white" alt="shadcn/ui" />
+  <img src="https://img.shields.io/badge/Lucide-F56565?style=for-the-badge&logo=lucide&logoColor=white" alt="Lucide" />
+  <img src="https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white" alt="Framer Motion" />
+  <img src="https://img.shields.io/badge/React_Hook_Form-EC5990?style=for-the-badge&logo=reacthookform&logoColor=white" alt="React Hook Form" />
+  <img src="https://img.shields.io/badge/Zod-3E67B1?style=for-the-badge&logo=zod&logoColor=white" alt="Zod" />
+  <img src="https://img.shields.io/badge/Sonner-FFB237?style=for-the-badge&logo=sonner&logoColor=black" alt="Sonner" />
+</p>
 
-```bash
-bun install
-bun --bun run dev
+<p align="center">
+  <img src="https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white" alt="Prisma" />
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" alt="JWT" />
+  <img src="https://img.shields.io/badge/bcryptjs-000000?style=for-the-badge" alt="bcryptjs" />
+  <img src="https://img.shields.io/badge/date--fns-770C56?style=for-the-badge&logo=datefns&logoColor=white" alt="date-fns" />
+  <img src="https://img.shields.io/badge/Stripe-635BFF?style=for-the-badge&logo=stripe&logoColor=white" alt="Stripe" />
+  <img src="https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white" alt="Cloudinary" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Z.AI-GLM--4.5-1A1A2E?style=for-the-badge" alt="Z.AI" />
+  <img src="https://img.shields.io/badge/Netlify-00C7B7?style=for-the-badge&logo=netlify&logoColor=white" alt="Netlify" />
+  <img src="https://img.shields.io/badge/ESLint-4B32C3?style=for-the-badge&logo=eslint&logoColor=white" alt="ESLint" />
+  <img src="https://img.shields.io/badge/Prettier-F7B93E?style=for-the-badge&logo=prettier&logoColor=black" alt="Prettier" />
+  
+
+</p>
+
+<h1 align="center">Smart Health Care — Modern Healthcare Made Simple</h1>
+
+**Full-stack healthcare portal** for doctor discovery, appointment booking, Stripe payments, prescriptions, and role-based dashboards — with an AI health assistant.
+
+[**Live Demo**](https://smarthealthcare-start.netlify.app/) · [Repository](https://github.com/mohamim360/SmartHealthCare-Hospital-Management-System)
+
+---
+
+## The problem & the solution
+
+Healthcare booking and practice management often live in disconnected tools — one site to find a doctor, another to pay, another for admin staff.
+
+**Smart Health Care** brings it together: public discovery and marketing, patient booking with **Stripe Checkout**, doctor scheduling with weekly availability, admin operations for the whole practice, and **HealthAI** for guided navigation and appointment help — all on one platform built with modern full-stack TypeScript.
+
+> Find qualified doctors, let AI book appointments for you or your staff, and manage health records from one trusted platform.
+
+---
+
+## Key features
+
+### Public experience
+
+- **Marketing landing** — live stats, featured doctors, testimonials (`/`)
+- **Doctor directory** — search, filters, pagination (`/consultation`)
+- **Doctor profiles** — public profile with available schedules (`/doctor/:id`)
+- **Auth** — patient registration with optional profile photo upload (`/login`, `/register`)
+
+### Patient dashboard
+
+- **Book appointment** — select doctor → time slot → Stripe Checkout
+- **My appointments** — view and manage bookings
+- **Payment history** — paid/unpaid status with Stripe verification
+- **Prescriptions & health records** — view issued prescriptions
+- **Reviews** — rate and review doctors
+
+### Doctor dashboard
+
+- **Appointments** — manage patient visits and status
+- **My schedules** — weekly availability, slot generation, day cancellations
+- **Prescriptions** — create and manage patient prescriptions
+
+### Admin dashboard
+
+- **Doctors, patients, admins** — full user management with soft delete
+- **Appointments & schedules** — practice-wide scheduling
+- **Payments** — overview of Stripe transactions
+- **Dashboard metadata** — role-specific stats and KPIs
+
+### HealthAI assistant
+
+- Floating chat on landing and dashboard pages
+- General health Q&A with rate limiting
+- Role-aware deep links into the app
+- Optional appointment booking via chat (including admin booking on behalf of patients)
+
+### Platform capabilities
+
+- **Authentication** — JWT access + refresh tokens, bcrypt passwords, HttpOnly cookies + Bearer header, role-based route guards
+- **Payments** — Stripe Checkout sessions, success/cancel flows, webhooks, payment verification
+- **Media** — Cloudinary uploads for profile photos
+- **Architecture** — TanStack Start API routes → domain services → Prisma → PostgreSQL
+- **API playground** — interactive endpoint tester at `/dev` (development)
+
+---
+
+## Tech stack
+
+| Category | Technologies |
+|----------|--------------|
+| **Frontend** | React 19, TanStack Router / Start / Query, Tailwind CSS 4, shadcn/ui, Lucide, Framer Motion, Sonner |
+| **Backend** | TanStack Start server handlers, TypeScript domain services, Zod, react-hook-form, date-fns |
+| **Database** | PostgreSQL, Prisma 7 (`@prisma/adapter-pg`) |
+| **Auth** | Custom JWT (jsonwebtoken) + bcryptjs password hashing |
+| **Payments** | Stripe Checkout + webhooks |
+| **Media** | Cloudinary |
+| **AI** | Z.AI (GLM-4.5) via OpenAI-compatible HTTP API |
+| **Deploy** | Netlify (`@netlify/vite-plugin-tanstack-start`) |
+
+> **Note:** Auth uses custom JWT; the assistant uses Z.AI directly.
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TB
+  subgraph client [Client]
+    Pages[TanStack Router Pages]
+    Query[TanStack Query]
+    Widget[HealthAI Widget]
+  end
+
+  subgraph server [TanStack Start Server]
+    API[API Route Handlers]
+    Services[Domain Services]
+    AuthMW[Auth Middleware]
+  end
+
+  subgraph external [External Services]
+    PG[(PostgreSQL)]
+    Stripe[Stripe]
+    Cloudinary[Cloudinary]
+    ZAI[Z.AI API]
+  end
+
+  Pages --> Query
+  Query --> API
+  Widget --> API
+  API --> AuthMW
+  AuthMW --> Services
+  Services --> PG
+  Services --> Stripe
+  Services --> Cloudinary
+  API --> ZAI
 ```
 
-# Building For Production
+**Request flow:** UI pages and the AI widget call REST-style handlers under `src/routes/api/`. Middleware verifies JWTs; services in `src/lib/` encapsulate business logic and Prisma access.
 
-To build this application for production:
+---
 
-```bash
-bun --bun run build
-```
-
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
-
-```bash
-bun --bun run test
-```
-
-## Styling
-
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-
-## Linting & Formatting
-
-
-This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
-
-```bash
-bun --bun run lint
-bun --bun run format
-bun --bun run check
-```
-
-
-## Shadcn
-
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
-
-```bash
-pnpm dlx shadcn@latest add button
-```
-
-
-## Setting up Better Auth
-
-1. Generate and set the `BETTER_AUTH_SECRET` environment variable in your `.env.local`:
-
-   ```bash
-   npx @better-auth/cli secret
-   ```
-
-2. Visit the [Better Auth documentation](https://www.better-auth.com) to unlock the full potential of authentication in your app.
-
-### Adding a Database (Optional)
-
-Better Auth can work in stateless mode, but to persist user data, add a database:
-
-```typescript
-// src/lib/auth.ts
-import { betterAuth } from "better-auth";
-import { Pool } from "pg";
-
-export const auth = betterAuth({
-  database: new Pool({
-    connectionString: process.env.DATABASE_URL,
-  }),
-  // ... rest of config
-});
-```
-
-Then run migrations:
-
-```bash
-npx @better-auth/cli migrate
-```
-
-
-# Resume Example
-
-A professional resume template built with TanStack Start and content-collections for Netlify deployment.
-
-## Features
-
-- **Content Collections**: Work experience and education managed as markdown files
-- **Skills Filter**: Interactive sidebar to filter jobs by skills/technologies
-- **Beautiful UI**: Modern design with shadcn/ui components
-- **SSR Ready**: Full server-side rendering with TanStack Start
-
-## Project Structure
+## Project structure
 
 ```
-├── content/
-│   ├── jobs/              # Work experience entries
-│   └── education/         # Education entries
+smarthealthcare/
+├── prisma/
+│   ├── schema.prisma          # Data model (User, Doctor, Patient, Appointment, …)
+│   ├── migrations/
+│   └── seed-doctors.ts        # Demo doctor data
+├── docs/
+│   └── screenshots/           # README feature images (you add these)
 ├── src/
-│   ├── components/
-│   │   └── ui/            # Shadcn UI components
-│   │       ├── badge.tsx
-│   │       ├── card.tsx
-│   │       ├── checkbox.tsx
-│   │       ├── hover-card.tsx
-│   │       └── separator.tsx
-│   ├── lib/
-│   │   └── utils.ts       # Utility functions
-│   └── routes/
-│       ├── __root.tsx     # Root layout
-│       └── index.tsx      # Resume page
-└── public/
-    └── headshot-on-white.jpg
+│   ├── routes/                # File-based pages + API routes
+│   │   ├── index.tsx          # Landing
+│   │   ├── consultation.tsx   # Doctor search
+│   │   ├── dashboard/         # Patient, doctor, admin dashboards
+│   │   └── api/               # REST handlers (auth, appointments, payments, AI, …)
+│   ├── lib/                   # Domain services, auth, payment, validators
+│   ├── components/            # UI, layout, landing, forms, AI widget
+│   ├── hooks/                 # useAuth, useAiChat, useDoctorFilter, …
+│   └── generated/prisma/      # Prisma client (generated)
+├── netlify.toml               # Production deploy config
+├── .env.example               # Environment variable template
+└── package.json
 ```
 
-## Adding Work Experience
-
-Create a new markdown file in `content/jobs/` with the following frontmatter:
-
-```markdown
----
-jobTitle: Your Job Title
-company: Company Name
-location: City, State
-startDate: 2024-01-01
-endDate: 2024-12-31  # Optional - omit for current position
-summary: Brief summary of your role
-tags:
-  - React
-  - TypeScript
-  - Web Development
 ---
 
-Detailed description of your responsibilities and achievements...
-```
+## Getting started
 
-## Adding Education
+### Prerequisites
 
-Create a new markdown file in `content/education/`:
+- **Node.js** 20+
+- **PostgreSQL** database
+- **npm** or **bun**
 
-```markdown
----
-school: School Name
-summary: Degree or Program Name
-startDate: 2020-01-01
-endDate: 2024-01-01
-tags:
-  - Relevant
-  - Skills
----
-
-Details about your education...
-```
-
-## Development
+### Installation
 
 ```bash
-# Start development server
+git clone <your-repo-url>
+cd smarthealthcare
+npm install
+```
+
+### Environment
+
+Copy the template and fill in your values:
+
+```bash
+cp .env.example .env.local
+```
+
+See [`.env.example`](.env.example) for every variable and what it does.
+
+### Database
+
+```bash
+npm run db:generate
+npm run db:migrate
+npm run db:seed:doctors   # optional: demo doctors
+```
+
+### Run locally
+
+```bash
 npm run dev
-
-# Build for production
-npm run build
 ```
 
+Open [http://localhost:3000](http://localhost:3000).
 
+For the first admin account, set `ALLOW_BOOTSTRAP=true` temporarily and use `POST /api/user/create-admin`, then disable it.
 
-## Routing
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
+---
 
-### Adding A Route
+## Scripts
 
-To add a new route to your application just add another a new file in the `./src/routes` directory.
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start dev server (port 3000) |
+| `npm run build` | Production build |
+| `npm run preview` | Preview production build |
+| `npm run test` | Run Vitest |
+| `npm run lint` | ESLint |
+| `npm run format` | Prettier |
+| `npm run check` | Format + ESLint fix |
+| `npm run db:generate` | Generate Prisma client |
+| `npm run db:push` | Push schema to DB (dev) |
+| `npm run db:migrate` | Run migrations (dev) |
+| `npm run db:studio` | Open Prisma Studio |
+| `npm run db:seed` | Run default seed |
+| `npm run db:seed:doctors` | Seed demo doctors |
 
-TanStack will automatically generate the content of the route file for you.
+---
 
-Now that you have two routes you can use a `Link` component to navigate between them.
+## API overview
 
-### Adding Links
+| Area | Endpoints |
+|------|-----------|
+| **Auth** | `/api/auth/login`, `logout`, `me` |
+| **Users** | `/api/user/create-patient`, `create-doctor`, `create-admin` |
+| **Doctors** | `/api/doctor/`, `/:id`, `profile`, `specializations` |
+| **Patients** | `/api/patient/`, `/:id`, `profile` |
+| **Schedules** | `/api/schedule/`, `/api/doctor-schedule/`, `/api/weekly-availability/` |
+| **Appointments** | `/api/appointment/` |
+| **Payments** | `/api/payment/checkout`, `verify`, `webhook` |
+| **Prescriptions** | `/api/prescription/` |
+| **Reviews** | `/api/review/` |
+| **Public** | `/api/public/landing-data` |
+| **AI** | `/api/ai/chat` |
+| **Health** | `/api/health` |
 
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
+Explore endpoints interactively at **`/dev`** during local development.
 
-```tsx
-import { Link } from "@tanstack/react-router";
-```
+---
 
-Then anywhere in your JSX you can use it like so:
+## Deployment
 
-```tsx
-<Link to="/about">About</Link>
-```
+Production deploys target **Netlify** via [`netlify.toml`](netlify.toml):
 
-This will create a link that will navigate to the `/about` route.
+1. `npm install`
+2. `prisma generate` + `prisma migrate deploy`
+3. `vite build`
+4. Publish `dist/client`
 
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
+Set all environment variables from `.env.example` in the Netlify dashboard. Use your production `SITE_URL` for Stripe redirect URLs and configure the Stripe webhook to point at `/api/payment/webhook`.
 
-### Using A Layout
+---
 
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you use the `<Outlet />` component.
+## Data model (high level)
 
-Here is an example layout that includes a header:
+- **Roles:** `PATIENT`, `DOCTOR`, `ADMIN`
+- **Core entities:** User, Doctor, Patient, Admin, Schedule, DoctorSchedules, DoctorWeeklyAvailability, Appointment, Payment, Prescription, Review
 
-```tsx
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+Full schema: [`prisma/schema.prisma`](prisma/schema.prisma).
 
-import { Link } from "@tanstack/react-router";
+---
 
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
-})
-```
+## Known limitations
 
-The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
+- `/forgot-password` is a stub (not implemented)
+- Admin **Specialities** UI uses mock data (not DB-backed)
+- `videoCallingId` is stored on appointments but there is no video-call UI yet
+- Vitest is configured; test files are not yet added
 
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
+---
 
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/people",
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json() as Promise<{
-      results: {
-        name: string;
-      }[];
-    }>;
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData();
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    );
-  },
-});
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-### React-Query
-
-React-Query is an excellent addition or alternative to route loading and integrating it into you application is a breeze.
-
-First add your dependencies:
-
-```bash
-bun install @tanstack/react-query @tanstack/react-query-devtools
-```
-
-Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
-
-```tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-// ...
-
-const queryClient = new QueryClient();
-
-// ...
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
-}
-```
-
-You can also add TanStack Query Devtools to the root route (optional).
-
-```tsx
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
-const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ReactQueryDevtools buttonPosition="top-right" />
-      <TanStackRouterDevtools />
-    </>
-  ),
-});
-```
-
-Now you can use `useQuery` to fetch your data.
-
-```tsx
-import { useQuery } from "@tanstack/react-query";
-
-import "./App.css";
-
-function App() {
-  const { data } = useQuery({
-    queryKey: ["people"],
-    queryFn: () =>
-      fetch("https://swapi.dev/api/people")
-        .then((res) => res.json())
-        .then((data) => data.results as { name: string }[]),
-    initialData: [],
-  });
-
-  return (
-    <div>
-      <ul>
-        {data.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export default App;
-```
-
-You can find out everything you need to know on how to use React-Query in the [React-Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
-
-## State Management
-
-Another common requirement for React applications is state management. There are many options for state management in React. TanStack Store provides a great starting point for your project.
-
-First you need to add TanStack Store as a dependency:
-
-```bash
-bun install @tanstack/store
-```
-
-Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-function App() {
-  const count = useStore(countStore);
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-    </div>
-  );
-}
-
-export default App;
-```
-
-One of the many nice features of TanStack Store is the ability to derive state from other state. That derived state will update when the base state updates.
-
-Let's check this out by doubling the count using derived state.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store, Derived } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-const doubledStore = new Derived({
-  fn: () => countStore.state * 2,
-  deps: [countStore],
-});
-doubledStore.mount();
-
-function App() {
-  const count = useStore(countStore);
-  const doubledCount = useStore(doubledStore);
-
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-      <div>Doubled - {doubledCount}</div>
-    </div>
-  );
-}
-
-export default App;
-```
-
-We use the `Derived` class to create a new store that is derived from another store. The `Derived` class has a `mount` method that will start the derived store updating.
-
-Once we've created the derived store we can use it in the `App` component just like we would any other store using the `useStore` hook.
-
-You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
+Built with [TanStack Start](https://tanstack.com/start).

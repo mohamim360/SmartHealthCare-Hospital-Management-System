@@ -61,6 +61,7 @@ import { Route as ApiUserCreatePatientRouteImport } from './routes/api/user/crea
 import { Route as ApiUserCreateDoctorRouteImport } from './routes/api/user/create-doctor'
 import { Route as ApiUserCreateAdminRouteImport } from './routes/api/user/create-admin'
 import { Route as ApiScheduleIdRouteImport } from './routes/api/schedule/$id'
+import { Route as ApiPrescriptionIdRouteImport } from './routes/api/prescription/$id'
 import { Route as ApiPaymentWebhookRouteImport } from './routes/api/payment/webhook'
 import { Route as ApiPaymentVerifyRouteImport } from './routes/api/payment/verify'
 import { Route as ApiPaymentCheckoutRouteImport } from './routes/api/payment/checkout'
@@ -358,6 +359,11 @@ const ApiScheduleIdRoute = ApiScheduleIdRouteImport.update({
   path: '/api/schedule/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPrescriptionIdRoute = ApiPrescriptionIdRouteImport.update({
+  id: '/api/prescription/$id',
+  path: '/api/prescription/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPaymentWebhookRoute = ApiPaymentWebhookRouteImport.update({
   id: '/api/payment/webhook',
   path: '/api/payment/webhook',
@@ -478,6 +484,7 @@ export interface FileRoutesByFullPath {
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/verify': typeof ApiPaymentVerifyRoute
   '/api/payment/webhook': typeof ApiPaymentWebhookRoute
+  '/api/prescription/$id': typeof ApiPrescriptionIdRoute
   '/api/schedule/$id': typeof ApiScheduleIdRoute
   '/api/user/create-admin': typeof ApiUserCreateAdminRoute
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
@@ -546,6 +553,7 @@ export interface FileRoutesByTo {
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/verify': typeof ApiPaymentVerifyRoute
   '/api/payment/webhook': typeof ApiPaymentWebhookRoute
+  '/api/prescription/$id': typeof ApiPrescriptionIdRoute
   '/api/schedule/$id': typeof ApiScheduleIdRoute
   '/api/user/create-admin': typeof ApiUserCreateAdminRoute
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
@@ -618,6 +626,7 @@ export interface FileRoutesById {
   '/api/payment/checkout': typeof ApiPaymentCheckoutRoute
   '/api/payment/verify': typeof ApiPaymentVerifyRoute
   '/api/payment/webhook': typeof ApiPaymentWebhookRoute
+  '/api/prescription/$id': typeof ApiPrescriptionIdRoute
   '/api/schedule/$id': typeof ApiScheduleIdRoute
   '/api/user/create-admin': typeof ApiUserCreateAdminRoute
   '/api/user/create-doctor': typeof ApiUserCreateDoctorRoute
@@ -691,6 +700,7 @@ export interface FileRouteTypes {
     | '/api/payment/checkout'
     | '/api/payment/verify'
     | '/api/payment/webhook'
+    | '/api/prescription/$id'
     | '/api/schedule/$id'
     | '/api/user/create-admin'
     | '/api/user/create-doctor'
@@ -759,6 +769,7 @@ export interface FileRouteTypes {
     | '/api/payment/checkout'
     | '/api/payment/verify'
     | '/api/payment/webhook'
+    | '/api/prescription/$id'
     | '/api/schedule/$id'
     | '/api/user/create-admin'
     | '/api/user/create-doctor'
@@ -830,6 +841,7 @@ export interface FileRouteTypes {
     | '/api/payment/checkout'
     | '/api/payment/verify'
     | '/api/payment/webhook'
+    | '/api/prescription/$id'
     | '/api/schedule/$id'
     | '/api/user/create-admin'
     | '/api/user/create-doctor'
@@ -898,6 +910,7 @@ export interface RootRouteChildren {
   ApiPaymentCheckoutRoute: typeof ApiPaymentCheckoutRoute
   ApiPaymentVerifyRoute: typeof ApiPaymentVerifyRoute
   ApiPaymentWebhookRoute: typeof ApiPaymentWebhookRoute
+  ApiPrescriptionIdRoute: typeof ApiPrescriptionIdRoute
   ApiScheduleIdRoute: typeof ApiScheduleIdRoute
   ApiUserCreateAdminRoute: typeof ApiUserCreateAdminRoute
   ApiUserCreateDoctorRoute: typeof ApiUserCreateDoctorRoute
@@ -1284,6 +1297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiScheduleIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/prescription/$id': {
+      id: '/api/prescription/$id'
+      path: '/api/prescription/$id'
+      fullPath: '/api/prescription/$id'
+      preLoaderRoute: typeof ApiPrescriptionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/payment/webhook': {
       id: '/api/payment/webhook'
       path: '/api/payment/webhook'
@@ -1525,6 +1545,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPaymentCheckoutRoute: ApiPaymentCheckoutRoute,
   ApiPaymentVerifyRoute: ApiPaymentVerifyRoute,
   ApiPaymentWebhookRoute: ApiPaymentWebhookRoute,
+  ApiPrescriptionIdRoute: ApiPrescriptionIdRoute,
   ApiScheduleIdRoute: ApiScheduleIdRoute,
   ApiUserCreateAdminRoute: ApiUserCreateAdminRoute,
   ApiUserCreateDoctorRoute: ApiUserCreateDoctorRoute,

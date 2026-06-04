@@ -1,6 +1,7 @@
 import type { UserPayload } from '@/lib/auth/auth.middleware'
 import { AppointmentStatus, PaymentStatus } from '@/generated/prisma/client'
 import { prisma } from '@/db'
+import { refundPaymentForAppointment } from '@/lib/payment/payment.service'
 
 export type CreateAppointmentInput = {
   doctorId: string
@@ -156,8 +157,12 @@ export async function changeAppointmentStatus(
   }
   // ADMIN / SUPER_ADMIN can change any appointment
 
-  // When cancelling, also release the booked slot
+  // When cancelling, refund if paid and release the booked slot
   if (newStatus === 'CANCEL') {
+    if (appointment.paymentStatus === PaymentStatus.PAID) {
+      await refundPaymentForAppointment(appointmentId)
+    }
+
     return prisma.$transaction(async (tx) => {
       const updated = await tx.appointment.update({
         where: { id: appointmentId },
@@ -212,6 +217,10 @@ export async function markPaymentPaid(user: UserPayload, appointmentId: string) 
   }
   if (appointment.payment.status === PaymentStatus.PAID) {
     throw new Error('Payment already completed')
+  }
+
+  if (appointment.paymentStatus === PaymentStatus.REFUNDED) {
+    throw new Error('Payment was refunded for this appointment')
   }
 
   // Block payment for cancelled appointments

@@ -72,6 +72,14 @@ export const Route = createFileRoute('/api/prescription/')({
           if (err instanceof Error && err.message === 'This is not your appointment') {
             return sendError({ statusCode: 400, message: err.message })
           }
+          const isDuplicate =
+            typeof err === 'object' && err !== null && 'code' in err && (err as { code: string }).code === 'P2002'
+          if (isDuplicate) {
+            return sendError({
+              statusCode: 409,
+              message: 'A prescription already exists for this appointment',
+            })
+          }
           const isNotFound =
             typeof err === 'object' && err !== null && 'code' in err && (err as { code: string }).code === 'P2025'
           if (isNotFound) {

@@ -21,6 +21,7 @@ function BookAppointmentPage() {
   const [selectedSchedule, setSelectedSchedule] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [bookingMode, setBookingMode] = useState<'book-only' | 'book-pay' | null>(null)
   const [redirecting, setRedirecting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -43,14 +44,14 @@ function BookAppointmentPage() {
     }
   }
 
-  // Step 3: Submit appointment + redirect to Stripe
-  const handleBooking = async () => {
+  // Step 3: Book only (pay later from My Appointments)
+  const handleBookOnly = async () => {
     if (!selectedDoctor || !selectedSchedule) return
 
     setSubmitting(true)
+    setBookingMode('book-only')
     setError(null)
 
-    // Create appointment
     const res = await api.post('/api/appointment', {
       doctorId: selectedDoctor.id,
       scheduleId: selectedSchedule,
@@ -59,6 +60,33 @@ function BookAppointmentPage() {
     if (!res.success) {
       setError(res.message || 'Failed to book appointment')
       setSubmitting(false)
+      setBookingMode(null)
+      return
+    }
+
+    toast.success('Appointment booked! You can pay anytime from My Appointments.')
+    setSubmitting(false)
+    setBookingMode(null)
+    setSuccess(true)
+  }
+
+  // Step 4: Book and redirect to Stripe checkout
+  const handleBookAndPay = async () => {
+    if (!selectedDoctor || !selectedSchedule) return
+
+    setSubmitting(true)
+    setBookingMode('book-pay')
+    setError(null)
+
+    const res = await api.post('/api/appointment', {
+      doctorId: selectedDoctor.id,
+      scheduleId: selectedSchedule,
+    })
+
+    if (!res.success) {
+      setError(res.message || 'Failed to book appointment')
+      setSubmitting(false)
+      setBookingMode(null)
       return
     }
 
@@ -66,23 +94,22 @@ function BookAppointmentPage() {
     if (!appointmentId) {
       setError('Appointment created but ID missing')
       setSubmitting(false)
+      setBookingMode(null)
       return
     }
 
-    // Create Stripe Checkout session
     setRedirecting(true)
     toast.info('Redirecting to payment...')
 
     const payRes = await api.post('/api/payment/checkout', { appointmentId })
 
     if (payRes.success && payRes.data?.url) {
-      // Redirect to Stripe Checkout
       window.location.href = payRes.data.url
     } else {
-      // Appointment created but payment redirect failed — still show success
       toast.warning('Appointment booked! You can pay later from My Appointments.')
       setRedirecting(false)
       setSubmitting(false)
+      setBookingMode(null)
       setSuccess(true)
     }
   }
@@ -251,20 +278,35 @@ function BookAppointmentPage() {
                     <span className="text-muted-foreground">Consultation Fee</span>
                     <span className="font-bold text-lg text-primary">${selectedDoctor.appointmentFee}</span>
                   </div>
-                  <Button
-                    className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold text-base"
-                    size="lg"
-                    disabled={submitting}
-                    onClick={handleBooking}
-                  >
-                    {submitting ? (
-                      <><Loader2 className="h-5 w-5 animate-spin" />Processing...</>
-                    ) : (
-                      <><CreditCard className="h-5 w-5" />Book & Pay — ${selectedDoctor.appointmentFee}</>
-                    )}
-                  </Button>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2 h-12 font-semibold"
+                      size="lg"
+                      disabled={submitting}
+                      onClick={handleBookOnly}
+                    >
+                      {submitting && bookingMode === 'book-only' ? (
+                        <><Loader2 className="h-5 w-5 animate-spin" />Processing...</>
+                      ) : (
+                        <><Calendar className="h-5 w-5" />Book Now — Pay Later</>
+                      )}
+                    </Button>
+                    <Button
+                      className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold h-12"
+                      size="lg"
+                      disabled={submitting}
+                      onClick={handleBookAndPay}
+                    >
+                      {submitting && bookingMode === 'book-pay' ? (
+                        <><Loader2 className="h-5 w-5 animate-spin" />Processing...</>
+                      ) : (
+                        <><CreditCard className="h-5 w-5" />Book & Pay — ${selectedDoctor.appointmentFee}</>
+                      )}
+                    </Button>
+                  </div>
                   <p className="text-xs text-center text-muted-foreground">
-                    🔒 You'll be redirected to Stripe's secure checkout
+                    Book now and pay from My Appointments, or pay immediately via Stripe secure checkout
                   </p>
                 </div>
               )}
