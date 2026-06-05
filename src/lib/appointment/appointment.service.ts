@@ -2,6 +2,10 @@ import type { UserPayload } from '@/lib/auth/auth.middleware'
 import { AppointmentStatus, PaymentStatus } from '@/generated/prisma/client'
 import { prisma } from '@/db'
 import { refundPaymentForAppointment } from '@/lib/payment/payment.service'
+import {
+  addScheduleDays,
+  getScheduleDayStart,
+} from '@/lib/utils/schedule-datetime'
 
 export type CreateAppointmentInput = {
   doctorId: string
@@ -28,10 +32,8 @@ async function createAppointmentForPatientEmail(patientEmail: string, payload: C
   })
 
   // Pre-compute the date range for cancellation check
-  const slotDate = new Date(doctorSchedule.schedule.startDateTime)
-  const startOfSlotDay = new Date(slotDate.getFullYear(), slotDate.getMonth(), slotDate.getDate())
-  const endOfSlotDay = new Date(startOfSlotDay)
-  endOfSlotDay.setDate(endOfSlotDay.getDate() + 1)
+  const startOfSlotDay = getScheduleDayStart(doctorSchedule.schedule.startDateTime)
+  const endOfSlotDay = addScheduleDays(startOfSlotDay, 1)
 
   const videoCallingId = crypto.randomUUID()
   const transactionId = crypto.randomUUID()

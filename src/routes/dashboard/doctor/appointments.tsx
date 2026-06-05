@@ -21,6 +21,7 @@ import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { api, buildQuery } from '@/lib/api'
+import { formatScheduleDateTime } from '@/lib/utils/schedule-datetime'
 
 export const Route = createFileRoute('/dashboard/doctor/appointments')({
     component: DoctorAppointmentsPage,
@@ -168,7 +169,7 @@ function DoctorAppointmentsPage() {
                                             <TableCell className="font-medium">{a.patient?.name ?? '—'}</TableCell>
                                             <TableCell>
                                                 {a.schedule?.startDateTime
-                                                    ? new Date(a.schedule.startDateTime).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
+                                                    ? formatScheduleDateTime(a.schedule.startDateTime)
                                                     : new Date(a.createdAt).toLocaleDateString()}
                                             </TableCell>
                                             <TableCell>

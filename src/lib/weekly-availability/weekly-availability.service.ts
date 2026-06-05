@@ -1,7 +1,14 @@
 import { prisma } from '@/db'
-import { addMinutes, addHours, format, addDays, startOfDay, parse } from 'date-fns'
 import { PaymentStatus } from '@/generated/prisma/client'
 import { refundPaymentForAppointment } from '@/lib/payment/payment.service'
+import {
+  addScheduleDays,
+  addScheduleMinutes,
+  getScheduleDateKey,
+  getScheduleDayStart,
+  parseScheduleDate,
+  parseScheduleDateTime,
+} from '@/lib/utils/schedule-datetime'
 
 export type DaySlot = {
   dayOfWeek: number
@@ -69,8 +76,8 @@ export async function getWeeklyAvailability(doctorId: string) {
  * Also auto-cancels any existing SCHEDULED appointments on that date.
  */
 export async function cancelDay(doctorId: string, date: string, reason?: string) {
-  const dateObj = startOfDay(parse(date, 'yyyy-MM-dd', new Date()))
-  const nextDay = addDays(dateObj, 1)
+  const dateObj = parseScheduleDate(date)
+  const nextDay = addScheduleDays(dateObj, 1)
 
   const appointmentsToCancel = await prisma.appointment.findMany({
     where: {
@@ -148,7 +155,7 @@ export async function cancelDay(doctorId: string, date: string, reason?: string)
  * Remove a cancellation (uncancel a day).
  */
 export async function uncancelDay(doctorId: string, date: string) {
-  const dateObj = startOfDay(parse(date, 'yyyy-MM-dd', new Date()))
+  const dateObj = parseScheduleDate(date)
 
   const result = await prisma.doctorDayCancellation.deleteMany({
     where: {
@@ -195,8 +202,8 @@ export async function generateSlotsForWeeks(doctorId: string, weeksAhead: number
   }
 
   // Get cancellations for the period
-  const today = startOfDay(new Date())
-  const endDate = addDays(today, weeksAhead * 7)
+  const today = getScheduleDayStart()
+  const endDate = addScheduleDays(today, weeksAhead * 7)
 
   const cancellations = await prisma.doctorDayCancellation.findMany({
     where: {
@@ -206,7 +213,7 @@ export async function generateSlotsForWeeks(doctorId: string, weeksAhead: number
   })
 
   const cancelledDates = new Set(
-    cancellations.map(c => format(c.date, 'yyyy-MM-dd'))
+    cancellations.map((c) => getScheduleDateKey(c.date)),
   )
 
   // Build a map of dayOfWeek -> availability
@@ -219,28 +226,16 @@ export async function generateSlotsForWeeks(doctorId: string, weeksAhead: number
   let currentDate = new Date(today)
 
   while (currentDate < endDate) {
-    const dayOfWeek = currentDate.getDay() // 0=Sunday
-    const dateStr = format(currentDate, 'yyyy-MM-dd')
+    const dayOfWeek = currentDate.getUTCDay()
+    const dateStr = getScheduleDateKey(currentDate)
 
-    // Check if this day has availability and is not cancelled
     const dayAvail = availByDay.get(dayOfWeek)
     if (dayAvail && !cancelledDates.has(dateStr)) {
-      const [startH, startM] = dayAvail.startTime.split(':').map(Number)
-      const [endH, endM] = dayAvail.endTime.split(':').map(Number)
-
-      const baseDate = parse(dateStr, 'yyyy-MM-dd', new Date())
-
-      let slotStart = addMinutes(
-        addHours(baseDate, startH),
-        startM
-      )
-      const dayEnd = addMinutes(
-        addHours(baseDate, endH),
-        endM
-      )
+      let slotStart = parseScheduleDateTime(dateStr, dayAvail.startTime)
+      const dayEnd = parseScheduleDateTime(dateStr, dayAvail.endTime)
 
       while (slotStart < dayEnd) {
-        const slotEnd = addMinutes(slotStart, intervalMinutes)
+        const slotEnd = addScheduleMinutes(slotStart, intervalMinutes)
         if (slotEnd > dayEnd) break
 
         // Check if schedule already exists
@@ -284,11 +279,11 @@ export async function generateSlotsForWeeks(doctorId: string, weeksAhead: number
           created++
         }
 
-        slotStart = addMinutes(slotStart, intervalMinutes)
+        slotStart = addScheduleMinutes(slotStart, intervalMinutes)
       }
     }
 
-    currentDate = addDays(currentDate, 1)
+    currentDate = addScheduleDays(currentDate, 1)
   }
 
   return { created, message: `Generated ${created} new schedule slots for ${weeksAhead} weeks` }

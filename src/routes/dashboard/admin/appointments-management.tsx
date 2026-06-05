@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useDebounce } from '@/hooks'
 import { api, buildQuery } from '@/lib/api'
+import { formatScheduleDateTime } from '@/lib/utils/schedule-datetime'
 
 export const Route = createFileRoute('/dashboard/admin/appointments-management')({
   component: AppointmentsManagementPage,
@@ -180,7 +181,7 @@ function AppointmentsManagementPage() {
                       <TableCell>{appt.doctor?.name ?? '—'}</TableCell>
                       <TableCell>
                         {appt.schedule?.startDateTime
-                          ? new Date(appt.schedule.startDateTime).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
+                          ? formatScheduleDateTime(appt.schedule.startDateTime)
                           : new Date(appt.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>{typeof appt.doctor?.appointmentFee === 'number' ? `$${appt.doctor.appointmentFee}` : '—'}</TableCell>

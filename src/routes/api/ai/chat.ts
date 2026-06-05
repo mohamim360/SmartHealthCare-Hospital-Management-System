@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { prisma } from '../../../db'
 import { verifyAuth } from '@/lib/auth/auth.middleware'
 import { createAppointmentByActor } from '@/lib/appointment/appointment.service'
+import { formatScheduleDateTime } from '@/lib/utils/schedule-datetime'
 
 const SYSTEM_PROMPT = `You are HealthAI, a helpful and empathetic health assistant for Smart Health Care, a modern healthcare platform.
 
@@ -344,7 +345,7 @@ async function tryAiBooking({
         patientEmail: currentPending.patientEmail,
       })
       pendingBookingByActor.delete(actorKey)
-      const dateText = new Date(selected.slotStartIso).toLocaleString()
+      const dateText = formatScheduleDateTime(selected.slotStartIso)
       return {
         text: [
           `Confirmed. I booked **${currentPending.doctorName}** for **${dateText}**.`,
@@ -388,7 +389,7 @@ async function tryAiBooking({
     currentPending.selectedOptionIndex = selectedSlotIndex
     pendingBookingByActor.set(actorKey, currentPending)
     const chosen = currentPending.slotOptions[selectedSlotIndex]
-    const dateText = new Date(chosen.slotStartIso).toLocaleString()
+    const dateText = formatScheduleDateTime(chosen.slotStartIso)
 
     return {
       text: [
@@ -498,7 +499,7 @@ async function tryAiBooking({
           expiresAt: Date.now() + PENDING_BOOKING_TTL_MS,
         })
 
-        const dateText = new Date(unassignedSchedule.startDateTime).toLocaleString()
+        const dateText = formatScheduleDateTime(unassignedSchedule.startDateTime)
         return {
           text: [
             `I found a slot for **${doctor.name}** at **${dateText}** and prepared the booking.`,
@@ -546,7 +547,7 @@ async function tryAiBooking({
   })
 
   if (slotOptions.length === 1) {
-    const dateText = new Date(slotOptions[0].slotStartIso).toLocaleString()
+    const dateText = formatScheduleDateTime(slotOptions[0].slotStartIso)
     return {
       text: [
         `I found one available slot with **${doctor.name}** at **${dateText}**.`,
@@ -557,7 +558,7 @@ async function tryAiBooking({
   }
 
   const slotLines = slotOptions
-    .map((option, i) => `- ${i + 1}. ${new Date(option.slotStartIso).toLocaleString()}`)
+    .map((option, i) => `- ${i + 1}. ${formatScheduleDateTime(option.slotStartIso)}`)
     .join('\n')
 
   return {

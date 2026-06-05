@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
+import { formatScheduleParts } from '@/lib/utils/schedule-datetime'
 import { PublicNavbar } from '@/components/layout/PublicNavbar'
 import { PublicFooter } from '@/components/layout/PublicFooter'
 import { DoctorCard } from '@/components/consultation/DoctorCard'
@@ -24,12 +25,7 @@ function getInitials(name: string) {
 }
 
 function formatScheduleDate(dateStr: string) {
-    const d = new Date(dateStr)
-    return {
-        day: d.toLocaleDateString('en-US', { weekday: 'short' }),
-        date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        time: d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-    }
+    return formatScheduleParts(dateStr)
 }
 
 function StarRating({ rating, size = 'sm' }: { rating: number; size?: 'sm' | 'md' }) {

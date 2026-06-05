@@ -3,6 +3,11 @@ import { UserStatus } from '@/generated/prisma/client'
 import { prisma } from '@/db'
 import { calculatePagination, type PaginationOptions } from '@/lib/utils/pagination'
 import { doctorSearchableFields, doctorSortableFields } from './doctor.constant'
+import {
+  getScheduleDateKey,
+  getScheduleDayStart,
+  addScheduleDays,
+} from '@/lib/utils/schedule-datetime'
 
 export type DoctorListFilters = {
   searchTerm?: string
@@ -63,26 +68,18 @@ export async function getDoctors(filters: DoctorListFilters, options: Pagination
 
   // Availability filter — doctors with unbooked schedules in date range
   if (filters.availability) {
-    const now = new Date()
-    let startDate: Date
-    let endDate: Date
-
-    if (filters.availability === 'today') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
-    } else {
-      // thisWeek — next 7 days
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 7)
-    }
+    const startDate = getScheduleDayStart()
+    const endDate =
+      filters.availability === 'today'
+        ? addScheduleDays(startDate, 1)
+        : addScheduleDays(startDate, 7)
 
     andConditions.push({
       doctorSchedules: {
         some: {
           isBooked: false,
           schedule: {
-            startDateTime: { gte: startDate },
-            endDateTime: { lte: endDate },
+            startDateTime: { gte: startDate, lt: endDate },
           },
         },
       },
@@ -150,24 +147,18 @@ export async function getDoctorByIdWithDetails(id: string) {
     prisma.doctorDayCancellation.findMany({
       where: {
         doctorId: id,
-        date: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate()) },
+        date: { gte: getScheduleDayStart() },
       },
       select: { date: true },
     }),
   ])
 
-  // Build a set of cancelled date strings (YYYY-MM-DD) for quick lookup
   const cancelledDates = new Set(
-    cancellations.map(c => {
-      const d = new Date(c.date)
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-    })
+    cancellations.map((c) => getScheduleDateKey(c.date)),
   )
 
-  // Filter out doctor schedules that fall on cancelled dates
-  const filteredSchedules = doctor.doctorSchedules.filter(ds => {
-    const slotDate = new Date(ds.schedule.startDateTime)
-    const dateStr = `${slotDate.getFullYear()}-${String(slotDate.getMonth() + 1).padStart(2, '0')}-${String(slotDate.getDate()).padStart(2, '0')}`
+  const filteredSchedules = doctor.doctorSchedules.filter((ds) => {
+    const dateStr = getScheduleDateKey(ds.schedule.startDateTime)
     return !cancelledDates.has(dateStr)
   }).slice(0, 20)
 

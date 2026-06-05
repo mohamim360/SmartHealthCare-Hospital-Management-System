@@ -8,6 +8,7 @@ import { MotionStaggerList, staggerItem, MotionFadeIn } from '@/components/ui/mo
 import { motion } from 'framer-motion'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
+import { formatScheduleDateTime } from '@/lib/utils/schedule-datetime'
 
 export const Route = createFileRoute('/dashboard/patient/')({
   component: PatientDashboard,
@@ -81,7 +82,7 @@ function PatientDashboard() {
                       <p className="text-xs text-muted-foreground">
                         {a.doctor?.designation ?? ''} •{' '}
                         {a.schedule?.startDateTime
-                          ? new Date(a.schedule.startDateTime).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
+                          ? formatScheduleDateTime(a.schedule.startDateTime)
                           : new Date(a.createdAt).toLocaleDateString()}
                       </p>
                     </div>

@@ -99,7 +99,7 @@ Detailed doctor page with profile photo, designation, experience, ratings, and a
 
 <p align="center">
   <img src="./docs/screenshots/booking.PNG" width="32%" />
-  <img src="./docs/screenshots/myappointment.PNG" width="32%" />
+  <img src="./docs/screenshots/myAppointment.PNG" width="32%" />
   <img src="./docs/screenshots/prescriptionDetails.PNG" width="32%" />
 </p>
 <p align="center">

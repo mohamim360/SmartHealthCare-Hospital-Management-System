@@ -16,6 +16,7 @@ import {
 import { api, buildQuery } from '@/lib/api'
 import { DeleteConfirmationDialog } from '@/components/shared/DeleteConfirmationDialog'
 import { toast } from 'sonner'
+import { formatScheduleDateTime, getTodayScheduleDateKey } from '@/lib/utils/schedule-datetime'
 
 export const Route = createFileRoute('/dashboard/admin/schedules-management')({
   component: SchedulesManagementPage,
@@ -37,22 +38,9 @@ function to24h(hour12: number, period: 'AM' | 'PM'): string {
   return String(h).padStart(2, '0')
 }
 
-/** Format a Date to locale string with AM/PM */
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-}
-
 /** Get today's date in YYYY-MM-DD for min attribute */
 function todayStr() {
-  const d = new Date()
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  return getTodayScheduleDateKey()
 }
 
 function SchedulesManagementPage() {
@@ -237,8 +225,8 @@ function SchedulesManagementPage() {
                 ) : (
                   schedules.map((s: any) => (
                     <TableRow key={s.id}>
-                      <TableCell>{formatDateTime(s.startDateTime)}</TableCell>
-                      <TableCell>{formatDateTime(s.endDateTime)}</TableCell>
+                      <TableCell>{formatScheduleDateTime(s.startDateTime)}</TableCell>
+                      <TableCell>{formatScheduleDateTime(s.endDateTime)}</TableCell>
                       <TableCell>{new Date(s.createdAt).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" onClick={() => setDeleteId(s.id)}>

@@ -17,6 +17,17 @@ import {
 } from '@/components/ui/dialog'
 import { api, buildQuery } from '@/lib/api'
 import { toast } from 'sonner'
+import {
+  addScheduleDays,
+  formatScheduleDateTime,
+  formatScheduleMonthYear,
+  formatScheduleShortMonth,
+  formatScheduleTime,
+  formatScheduleWeekdayDate,
+  getScheduleDateKey,
+  getScheduleDayStart,
+  parseScheduleDate,
+} from '@/lib/utils/schedule-datetime'
 
 export const Route = createFileRoute('/dashboard/doctor/my-schedules')({
   component: DoctorMySchedulesPage,
@@ -24,18 +35,6 @@ export const Route = createFileRoute('/dashboard/doctor/my-schedules')({
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-/** Format ISO datetime to AM/PM locale string */
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    hour12: true,
-  })
-}
 
 /** Format 24h time string (e.g. '14:00') to AM/PM (e.g. '2:00 PM') */
 function formatTimeAMPM(time24: string): string {
@@ -161,13 +160,11 @@ function ManualSchedulesTab() {
   const groupByDate = (slots: any[]) => {
     const grouped: Record<string, any[]> = {}
     for (const s of slots) {
-      const dateKey = new Date(s.startDateTime).toLocaleDateString()
+      const dateKey = getScheduleDateKey(s.startDateTime)
       if (!grouped[dateKey]) grouped[dateKey] = []
       grouped[dateKey].push(s)
     }
-    return Object.entries(grouped).sort(
-      ([a], [b]) => new Date(a).getTime() - new Date(b).getTime(),
-    )
+    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b))
   }
 
   const totalPages = Math.ceil(total / 10)
@@ -213,8 +210,8 @@ function ManualSchedulesTab() {
                     const s = ds.schedule ?? ds
                     return (
                       <TableRow key={ds.id ?? ds.scheduleId}>
-                        <TableCell>{formatDateTime(s.startDateTime)}</TableCell>
-                        <TableCell>{formatDateTime(s.endDateTime)}</TableCell>
+                        <TableCell>{formatScheduleDateTime(s.startDateTime)}</TableCell>
+                        <TableCell>{formatScheduleDateTime(s.endDateTime)}</TableCell>
                         <TableCell>
                           <Badge variant={ds.isBooked ? 'secondary' : 'default'}>
                             {ds.isBooked ? 'Booked' : 'Available'}
@@ -263,7 +260,9 @@ function ManualSchedulesTab() {
             <div className="space-y-5">
               {groupByDate(availableSlots).map(([date, daySlots]) => (
                 <div key={date}>
-                  <h3 className="font-medium mb-2 text-sm text-muted-foreground">{date}</h3>
+                  <h3 className="font-medium mb-2 text-sm text-muted-foreground">
+                    {formatScheduleWeekdayDate(parseScheduleDate(date))}
+                  </h3>
                   <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {daySlots.map((slot: any) => {
                       const selected = selectedIds.includes(slot.id)
@@ -283,9 +282,9 @@ function ManualSchedulesTab() {
                             {selected && <Check className="h-3 w-3" />}
                           </div>
                           <span>
-                            {new Date(slot.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {formatScheduleTime(slot.startDateTime)}
                             {' — '}
-                            {new Date(slot.endDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {formatScheduleTime(slot.endDateTime)}
                           </span>
                         </button>
                       )
@@ -396,7 +395,7 @@ function WeeklyAvailabilityTab() {
       toast.success(res.message || 'Day cancelled')
     } else {
       // Revert on failure
-      setCancellations(prev => prev.filter(c => formatDateStr(new Date(c.date)) !== dateStr))
+      setCancellations(prev => prev.filter(c => getScheduleDateKey(c.date) !== dateStr))
       toast.error(res.message || 'Failed to cancel day')
     }
   }
@@ -404,11 +403,11 @@ function WeeklyAvailabilityTab() {
   const handleRestoreDay = async (dateStr: string) => {
     // Optimistic update — remove from cancellations immediately
     const backup = [...cancellations]
-    setCancellations(prev => prev.filter(c => formatDateStr(new Date(c.date)) !== dateStr))
+    setCancellations(prev => prev.filter(c => getScheduleDateKey(c.date) !== dateStr))
 
     const res = await api.post('/api/weekly-availability/cancel', { date: dateStr, action: 'restore' })
     if (res.success) {
-      toast.success(`${new Date(dateStr + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' })} restored`)
+      toast.success(`${formatScheduleWeekdayDate(parseScheduleDate(dateStr))} restored`)
     } else {
       // Revert on failure
       setCancellations(backup)
@@ -425,31 +424,23 @@ function WeeklyAvailabilityTab() {
   }
 
   // Build calendar data for the visible range
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayStr = formatDateStr(today)
+  const today = getScheduleDayStart()
+  const todayStr = getScheduleDateKey(today)
 
-  const rangeStart = new Date(today)
-  rangeStart.setDate(rangeStart.getDate() + weekOffset * 28)
+  const rangeStart = addScheduleDays(today, weekOffset * 28)
 
-  // Snap rangeStart back to Sunday so weeks align properly
-  const startDow = rangeStart.getDay()
-  const calStart = new Date(rangeStart)
-  calStart.setDate(calStart.getDate() - startDow)
+  const startDow = rangeStart.getUTCDay()
+  const calStart = addScheduleDays(rangeStart, -startDow)
 
-  // Build 5 complete weeks (35 cells = 5 rows × 7 cols) to cover the 28-day range
-  const rangeEnd = new Date(rangeStart)
-  rangeEnd.setDate(rangeEnd.getDate() + 27)
+  const rangeEnd = addScheduleDays(rangeStart, 27)
 
-  // Calculate how many weeks we need (from calStart Sunday to cover rangeEnd)
   const diffDays = Math.ceil((rangeEnd.getTime() - calStart.getTime()) / (1000 * 60 * 60 * 24)) + 1
   const totalWeeks = Math.ceil(diffDays / 7)
   const totalCells = totalWeeks * 7
 
-  // Get the month(s) for the title
-  const monthTitle = rangeStart.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) +
-    (rangeStart.getMonth() !== rangeEnd.getMonth()
-      ? ' – ' + rangeEnd.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
+  const monthTitle = formatScheduleMonthYear(rangeStart) +
+    (getScheduleDateKey(rangeStart).slice(0, 7) !== getScheduleDateKey(rangeEnd).slice(0, 7)
+      ? ' – ' + formatScheduleMonthYear(rangeEnd)
       : '')
 
   type CalDay = {
@@ -464,16 +455,12 @@ function WeeklyAvailabilityTab() {
 
   const calendarCells: CalDay[] = []
   for (let i = 0; i < totalCells; i++) {
-    const d = new Date(calStart)
-    d.setDate(d.getDate() + i)
-    const dayOfWeek = d.getDay()
-    const dateStr = formatDateStr(d)
+    const d = addScheduleDays(calStart, i)
+    const dayOfWeek = d.getUTCDay()
+    const dateStr = getScheduleDateKey(d)
     const slot = slots.find(s => s.dayOfWeek === dayOfWeek)
     const isActive = slot?.isActive ?? false
-    const isCancelled = cancellations.some((c: any) => {
-      const cDate = formatDateStr(new Date(c.date))
-      return cDate === dateStr
-    })
+    const isCancelled = cancellations.some((c: any) => getScheduleDateKey(c.date) === dateStr)
     const isPast = d < today
     const isOutOfRange = d < rangeStart || d > rangeEnd
     calendarCells.push({ date: d, dateStr, dayOfWeek, isActive, isCancelled, isPast, isOutOfRange })
@@ -615,7 +602,7 @@ function WeeklyAvailabilityTab() {
                 {week.map((day) => {
                   const isToday = day.dateStr === todayStr
                   const slot = slots.find(s => s.dayOfWeek === day.dayOfWeek)
-                  const monthDay = day.date.getDate()
+                  const monthDay = day.date.getUTCDate()
                   const showMonth = monthDay === 1
 
                   // Out-of-range filler cell (padding days from prev/next range)
@@ -666,7 +653,7 @@ function WeeklyAvailabilityTab() {
                         type="button"
                         onClick={() => handleRestoreDay(day.dateStr)}
                         className="aspect-square rounded-xl border-2 border-dashed border-destructive/30 bg-destructive/5 flex flex-col items-center justify-center cursor-pointer group transition-all duration-200 hover:border-primary/50 hover:bg-primary/5 relative overflow-hidden"
-                        title={`Cancelled — click to restore ${DAY_NAMES[day.dayOfWeek]}, ${day.date.toLocaleDateString()}`}
+                        title={`Cancelled — click to restore ${DAY_NAMES[day.dayOfWeek]}, ${formatScheduleWeekdayDate(day.date)}`}
                       >
                         <div className="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_4px,rgba(239,68,68,0.04)_4px,rgba(239,68,68,0.04)_8px)]" />
                         <span className="text-sm text-destructive/60 font-medium line-through relative z-10">{monthDay}</span>
@@ -691,14 +678,14 @@ function WeeklyAvailabilityTab() {
                           ? 'border-primary bg-primary/10 shadow-md shadow-primary/10 ring-2 ring-primary/20'
                           : 'border-border bg-background hover:border-destructive/40 hover:bg-destructive/5 shadow-sm'
                       }`}
-                      title={`${DAY_NAMES[day.dayOfWeek]}, ${day.date.toLocaleDateString()} — click to cancel`}
+                      title={`${DAY_NAMES[day.dayOfWeek]}, ${formatScheduleWeekdayDate(day.date)} — click to cancel`}
                     >
                       {isToday && (
                         <span className="absolute top-1 right-1.5 text-[7px] font-bold text-primary uppercase">Today</span>
                       )}
                       {showMonth && (
                         <span className="absolute top-1 left-1.5 text-[7px] font-bold text-muted-foreground uppercase">
-                          {day.date.toLocaleDateString(undefined, { month: 'short' })}
+                          {formatScheduleShortMonth(day.date)}
                         </span>
                       )}
                       <span className={`text-base font-semibold ${isToday ? 'text-primary' : 'text-foreground group-hover:text-destructive'}`}>
@@ -743,13 +730,5 @@ function WeeklyAvailabilityTab() {
       </Card>
     </div>
   )
-}
-
-/** Format a Date to YYYY-MM-DD string in local timezone */
-function formatDateStr(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
 }
 

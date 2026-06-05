@@ -9,6 +9,7 @@ import { MotionStaggerList, staggerItem, MotionFadeIn } from '@/components/ui/mo
 import { motion } from 'framer-motion'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
+import { formatScheduleDateTime, getScheduleDateKey, getTodayScheduleDateKey } from '@/lib/utils/schedule-datetime'
 
 export const Route = createFileRoute('/dashboard/doctor/')({
     component: DoctorDashboard,
@@ -37,8 +38,8 @@ function DoctorDashboard() {
             { title: 'Avg Rating', value: meta.averageRating?.toFixed(1) ?? '—', icon: Star, description: 'Patient rating' },
             {
                 title: 'Today', value: appointments.filter((a: any) => {
-                    const apptDate = new Date(a.schedule?.startDateTime || a.createdAt)
-                    return apptDate.toDateString() === new Date().toDateString()
+                    if (!a.schedule?.startDateTime) return false
+                    return getScheduleDateKey(a.schedule.startDateTime) === getTodayScheduleDateKey()
                 }).length, icon: Clock, description: "Today's appointments"
             },
         ]
@@ -81,7 +82,7 @@ function DoctorDashboard() {
                                             <p className="font-medium text-sm">{a.patient?.name ?? 'Unknown Patient'}</p>
                                             <p className="text-xs text-muted-foreground">
                                                 {a.schedule?.startDateTime
-                                                    ? new Date(a.schedule.startDateTime).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
+                                                    ? formatScheduleDateTime(a.schedule.startDateTime)
                                                     : new Date(a.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>

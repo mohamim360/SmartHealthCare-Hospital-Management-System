@@ -1,10 +1,16 @@
-import { addHours, addMinutes, format } from 'date-fns'
 import type { Prisma } from '@/generated/prisma/client'
 import { prisma } from '@/db'
 import {
   calculatePagination,
   type PaginationOptions,
 } from '@/lib/utils/pagination'
+import {
+  addScheduleDays,
+  addScheduleMinutes,
+  getScheduleDateKey,
+  parseScheduleDate,
+  parseScheduleDateTime,
+} from '@/lib/utils/schedule-datetime'
 
 export type CreateScheduleInput = {
   startTime: string
@@ -22,39 +28,25 @@ export type ScheduleFilters = {
 /**
  * Creates 30-minute time slots between startDate–endDate × startTime–endTime.
  * If doctorId is provided, also links each slot to that doctor via DoctorSchedules.
- *
- * IMPORTANT: We append 'T00:00:00' to date strings to force local-timezone
- * parsing.  Plain `new Date('2026-04-11')` is treated as UTC midnight, which
- * can shift the day backward in positive-offset timezones (e.g. UTC+6) and
- * cause the loop to never execute for same-day schedules.
  */
 export async function insertSchedulesIntoDB(payload: CreateScheduleInput) {
   const { startTime, endTime, startDate, endDate, doctorId } = payload
   const intervalMinutes = 30
 
-  // Force local-timezone parsing
-  const currentDate = new Date(startDate + 'T00:00:00')
-  const lastDate = new Date(endDate + 'T00:00:00')
-  const [startHour, startMin] = startTime.split(':').map(Number)
-  const [endHour, endMin] = endTime.split(':').map(Number)
+  let currentDate = parseScheduleDate(startDate)
+  const lastDate = parseScheduleDate(endDate)
 
   let newSlots = 0
   let linkedSlots = 0
   let totalSlots = 0
 
   while (currentDate <= lastDate) {
-    const dateStr = format(currentDate, 'yyyy-MM-dd')
-    let slotStart = addMinutes(
-      addHours(new Date(dateStr + 'T00:00:00'), startHour),
-      startMin,
-    )
-    const dayEnd = addMinutes(
-      addHours(new Date(dateStr + 'T00:00:00'), endHour),
-      endMin,
-    )
+    const dateStr = getScheduleDateKey(currentDate)
+    let slotStart = parseScheduleDateTime(dateStr, startTime)
+    const dayEnd = parseScheduleDateTime(dateStr, endTime)
 
     while (slotStart < dayEnd) {
-      const slotEnd = addMinutes(slotStart, intervalMinutes)
+      const slotEnd = addScheduleMinutes(slotStart, intervalMinutes)
       totalSlots++
 
       const existing = await prisma.schedule.findFirst({
@@ -78,7 +70,6 @@ export async function insertSchedulesIntoDB(payload: CreateScheduleInput) {
         scheduleId = existing.id
       }
 
-      // Link to doctor if doctorId provided
       if (doctorId) {
         const existingLink = await prisma.doctorSchedules.findUnique({
           where: {
@@ -93,18 +84,17 @@ export async function insertSchedulesIntoDB(payload: CreateScheduleInput) {
         }
       }
 
-      slotStart = addMinutes(slotStart, intervalMinutes)
+      slotStart = addScheduleMinutes(slotStart, intervalMinutes)
     }
-    currentDate.setDate(currentDate.getDate() + 1)
+
+    currentDate = addScheduleDays(currentDate, 1)
   }
 
   return { newSlots, linkedSlots, totalSlots }
 }
 
-
 /**
  * Fetch all schedules with pagination and date filters.
- * This is the generic list — no doctor-specific filtering.
  */
 export async function getAllSchedules(
   filters: ScheduleFilters,

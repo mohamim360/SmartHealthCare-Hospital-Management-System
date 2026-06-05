@@ -9,6 +9,7 @@ import { PublicFooter } from '@/components/layout/PublicFooter'
 import { MotionSlideUp, MotionFadeIn, MotionStaggerList, staggerItem } from '@/components/ui/motion'
 import { motion } from 'framer-motion'
 import { api } from '@/lib/api'
+import { formatScheduleDateTime, formatScheduleParts } from '@/lib/utils/schedule-datetime'
 import { LandingStats } from '@/components/landing/LandingStats'
 import { FeaturedDoctors } from '@/components/landing/FeaturedDoctors'
 import { Testimonials } from '@/components/landing/Testimonials'
@@ -162,7 +163,10 @@ function HomePage() {
                           <p className="text-xs text-muted-foreground">
                             {nextAppointment.doctor?.name ?? 'Doctor'} •{' '}
                             {nextAppointment.schedule?.startDateTime
-                              ? `${new Date(nextAppointment.schedule.startDateTime).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} ${new Date(nextAppointment.schedule.startDateTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+                              ? (() => {
+                                  const parts = formatScheduleParts(nextAppointment.schedule.startDateTime)
+                                  return `${parts.day}, ${parts.date} ${parts.time}`
+                                })()
                               : 'Date TBD'}
                           </p>
                         </div>

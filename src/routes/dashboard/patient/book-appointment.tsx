@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api } from '@/lib/api'
 import { toast } from 'sonner'
+import { formatScheduleSlotButton } from '@/lib/utils/schedule-datetime'
 
 export const Route = createFileRoute('/dashboard/patient/book-appointment')({
   component: BookAppointmentPage,
@@ -250,11 +251,10 @@ function BookAppointmentPage() {
                     ?.filter((ds: any) => !ds.isBooked && ds.schedule?.startDateTime && new Date(ds.schedule.startDateTime) > new Date())
                     .sort((a: any, b: any) => new Date(a.schedule.startDateTime).getTime() - new Date(b.schedule.startDateTime).getTime())
                     .map((ds: any) => {
-                      const start = new Date(ds.schedule.startDateTime)
-                      const end = new Date(ds.schedule.endDateTime)
-                      const dateStr = start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-                      const startTime = start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-                      const endTime = end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+                      const { dateStr, startTime, endTime } = formatScheduleSlotButton(
+                        ds.schedule.startDateTime,
+                        ds.schedule.endDateTime,
+                      )
                       return (
                         <Button
                           key={ds.scheduleId}

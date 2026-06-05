@@ -8,7 +8,7 @@ import {
   getCancellations,
 } from '@/lib/weekly-availability/weekly-availability.service'
 import { setWeeklyAvailabilitySchema } from '@/lib/weekly-availability/weekly-availability.validation'
-import { addDays, startOfDay } from 'date-fns'
+import { addScheduleDays, getScheduleDayStart } from '@/lib/utils/schedule-datetime'
 
 export const Route = createFileRoute('/api/weekly-availability/')({
   server: {
@@ -43,8 +43,8 @@ export const Route = createFileRoute('/api/weekly-availability/')({
           }
 
           const availability = await getWeeklyAvailability(doctorId)
-          const today = startOfDay(new Date())
-          const cancellations = await getCancellations(doctorId, today, addDays(today, 56)) // 8 weeks
+          const today = getScheduleDayStart()
+          const cancellations = await getCancellations(doctorId, today, addScheduleDays(today, 56))
 
           return sendSuccess({
             statusCode: 200,

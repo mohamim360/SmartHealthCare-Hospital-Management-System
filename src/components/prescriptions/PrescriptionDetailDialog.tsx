@@ -14,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { api } from '@/lib/api'
+import { formatScheduleDateTime } from '@/lib/utils/schedule-datetime'
 
 type PrescriptionDetailDialogProps = {
   prescriptionId: string | null
@@ -157,9 +158,9 @@ export function PrescriptionDetailDialog({
                   Appointment
                 </div>
                 <p className="text-sm">
-                  {formatDateTime(prescription.appointment.schedule.startDateTime)}
+                  {formatScheduleDateTime(prescription.appointment.schedule.startDateTime)}
                   {' — '}
-                  {formatDateTime(prescription.appointment.schedule.endDateTime)}
+                  {formatScheduleDateTime(prescription.appointment.schedule.endDateTime)}
                 </p>
                 <div className="flex gap-2">
                   <Badge variant="secondary">{prescription.appointment.status}</Badge>

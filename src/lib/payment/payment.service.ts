@@ -2,6 +2,7 @@ import { getStripe } from './stripe'
 import { prisma } from '@/db'
 import { PaymentStatus } from '@/generated/prisma/client'
 import type { UserPayload } from '@/lib/auth/auth.middleware'
+import { formatScheduleDate } from '@/lib/utils/schedule-datetime'
 
 /**
  * Create a Stripe Checkout Session for an unpaid appointment.
@@ -57,7 +58,7 @@ export async function createCheckoutSession(appointmentId: string, userEmail: st
           unit_amount: amount * 100, // Stripe expects smallest currency unit (cents)
           product_data: {
             name: `Consultation — Dr. ${appointment.doctor.name}`,
-            description: `${appointment.doctor.designation} • ${new Date(appointment.schedule.startDateTime).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+            description: `${appointment.doctor.designation} • ${formatScheduleDate(appointment.schedule.startDateTime)}`,
           },
         },
         quantity: 1,

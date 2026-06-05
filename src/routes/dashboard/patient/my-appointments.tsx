@@ -16,6 +16,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { api, buildQuery } from '@/lib/api'
+import { formatScheduleDateTime } from '@/lib/utils/schedule-datetime'
 
 export const Route = createFileRoute('/dashboard/patient/my-appointments')({
   component: PatientMyAppointmentsPage,
@@ -172,7 +173,7 @@ function PatientMyAppointmentsPage() {
                       <TableCell>{a.doctor?.designation ?? '—'}</TableCell>
                       <TableCell>
                         {a.schedule?.startDateTime
-                          ? new Date(a.schedule.startDateTime).toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })
+                          ? formatScheduleDateTime(a.schedule.startDateTime)
                           : new Date(a.createdAt).toLocaleDateString()}
                       </TableCell>
                       <TableCell>${a.doctor?.appointmentFee ?? '—'}</TableCell>

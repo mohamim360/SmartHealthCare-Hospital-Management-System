@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { api, buildQuery } from '@/lib/api'
+import { formatScheduleDateTime } from '@/lib/utils/schedule-datetime'
 
 export const Route = createFileRoute('/dashboard/admin/payments')({
   component: AdminPaymentsPage,
@@ -163,9 +164,7 @@ function AdminPaymentsPage() {
                       </TableCell>
                       <TableCell className="text-sm">
                         {p.appointment?.schedule?.startDateTime
-                          ? new Date(p.appointment.schedule.startDateTime).toLocaleString('en-US', {
-                              month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
-                            })
+                          ? formatScheduleDateTime(p.appointment.schedule.startDateTime)
                           : '—'}
                       </TableCell>
                       <TableCell className="font-semibold">${p.amount}</TableCell>
